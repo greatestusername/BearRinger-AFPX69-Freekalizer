@@ -19,6 +19,12 @@ fun interface AudioProcessor {
      * Process audio from input to output buffers.
      *
      * Implementations should avoid allocations to reduce GC pressure in callback paths.
+     *
+     * Buffer layout semantics:
+     * - `input` is interleaved per frame using `inputChannels` from the engine config.
+     * - `output` is interleaved per frame using `outputChannels` from the engine config.
+     * - `input.size >= frameCount * inputChannels`
+     * - `output.size >= frameCount * outputChannels`
      */
     fun process(input: FloatArray, output: FloatArray, frameCount: Int)
 }

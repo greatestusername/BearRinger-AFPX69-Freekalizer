@@ -19,7 +19,7 @@ import com.freekalizer.ui.Dfx69TabletUiBlueprint
 
 class MainActivity : AppCompatActivity() {
     private lateinit var repo: AudioDeviceRepository
-    private val engineController = AndroidAudioEngineController()
+    private val engineController = AndroidAudioEngineController(this)
 
     private lateinit var permissionStatus: TextView
     private lateinit var inputSpinner: Spinner
@@ -56,8 +56,18 @@ class MainActivity : AppCompatActivity() {
 
         routeStatus = TextView(this)
         val start = Button(this).apply {
-            text = "Start (placeholder monitoring)"
-            setOnClickListener { engineController.startMonitoring() }
+            text = "Start Monitoring"
+            setOnClickListener {
+                if (!isMicPermissionGranted()) {
+                    requestMicPermission()
+                    return@setOnClickListener
+                }
+                engineController.setPreferredDevices(
+                    repo.selectedInputId,
+                    repo.selectedOutputId
+                )
+                engineController.startMonitoring()
+            }
         }
         val stop = Button(this).apply {
             text = "Stop"
@@ -84,7 +94,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        repo.start { updateDeviceUi() }
+        repo.start { _ ->
+            updateDeviceUi()
+            syncEngineControllerToSelection(rebind = true)
+        }
     }
 
     override fun onStop() {
@@ -97,6 +110,7 @@ class MainActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 repo.setSelectedInput(inputItems.getOrNull(position)?.second)
                 updateRouteStatus()
+                syncEngineControllerToSelection(rebind = true)
             }
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
@@ -104,6 +118,7 @@ class MainActivity : AppCompatActivity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 repo.setSelectedOutput(outputItems.getOrNull(position)?.second)
                 updateRouteStatus()
+                syncEngineControllerToSelection(rebind = true)
             }
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
@@ -142,9 +157,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePermissionUi() {
-        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
-            PackageManager.PERMISSION_GRANTED
+        val granted = isMicPermissionGranted()
         permissionStatus.text = "Mic permission: ${if (granted) "GRANTED" else "NOT GRANTED"}"
+    }
+
+    private fun isMicPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestMicPermission() {
@@ -164,6 +185,12 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQ_MIC) {
             updatePermissionUi()
         }
+    }
+
+    private fun syncEngineControllerToSelection(rebind: Boolean) {
+        engineController.setPreferredDevices(repo.selectedInputId, repo.selectedOutputId)
+        if (rebind) engineController.rebindIfRunning()
+        updateRouteStatus()
     }
 
     companion object {

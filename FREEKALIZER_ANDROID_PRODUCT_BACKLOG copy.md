@@ -264,9 +264,9 @@ Goal: stable real-time input/output path on Android tablets.
 
 Stories:
 
-- `E1-S1` (P0, in_progress) Build base audio engine initialization and teardown. (Core lifecycle state machine + tests implemented in `core`; Android app module scaffolded with `AudioBackend` adapter/controller wiring, low-latency native callback path still pending.)
+- `E1-S1` (P0, done) Build base audio engine initialization and teardown. (Core lifecycle + tests in `core`; Android monitoring backend now drives `AudioEngine` via real `AudioRecord`/`AudioTrack` loop with PCM_16 conversion and no-audio-thread allocations.)
 - `E1-S2` (P0, done) Implement input/output device enumeration and selection. (Android `AudioDeviceRepository` + UI selection spinners.)
-- `E1-S3` (P0, in_progress) Implement audio route change handling (plug/unplug/fallback). (Device add/remove callback + deterministic fallback for removed selections; audio stream rebind pending once native backend exists.)
+- `E1-S3` (P0, done) Implement audio route change handling (plug/unplug/fallback). (Device callback + fallback in `AudioDeviceRepository`; UI-driven safe rebind stop/start in controller; preferred device routing attempted via `setPreferredDevice` when supported.)
 - `E1-S4` (P1, todo) Add overload/clipping detection and UI meter.
 
 Acceptance criteria:
@@ -486,9 +486,11 @@ Defer:
 - `2026-03-25` - Added Android `app` module scaffold (`com.freekalizer.tablet`, minSdk 29), added Android audio backend/controller adapter layer on top of `core` engine contracts, added Gradle wrapper for reproducible builds, and verified `:core:test` passes via `./gradlew`.
 - `2026-03-25` - Fixed Android build config by enabling AndroidX in `gradle.properties` and cleaning `local.properties`; verified `./gradlew :app:assembleDebug` succeeds.
 - `2026-03-25` - Implemented Android device enumeration/selection UI and route-change callback handling (`E1-S2` done, `E1-S3` in progress), added mic permission plumbing, and verified `./gradlew :app:assembleDebug` succeeds with these changes.
+- `2026-03-26` - Replaced Android audio backend placeholder with a real `AudioRecord`/`AudioTrack` monitoring loop (PCM_16 with float conversion into core), wired device selection into safe stop/start rebind for route handling, and verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
 - Do not make up or lie about solutions. If you are unsure ask or search the web for context
 - make sure you create a README.md and Documentation for how to build/test/run the software. 
-- Make sure you update this requirements document as you go
+- When you do a set of work or issues/tickets make a document detailing that work and the date/time. MAKE SURE THAT DOC INCLUDES ALL OF THESE RULES
+- Make sure you update the requirements documents and other docs as you go
