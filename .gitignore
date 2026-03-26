@@ -1,0 +1,31 @@
+# Android/Gradle + Kotlin
+.gradle/
+**/.gradle/
+
+build/
+**/build/
+
+# Local SDK/NDK paths (never commit)
+local.properties
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code (if used)
+.vscode/
+
+# OS/editor cruft
+.DS_Store
+*.swp
+*.swo
+*.log
+
+# Keystores / credentials (if added later)
+*.jks
+*.keystore
+*.pem
+*.cer
+
