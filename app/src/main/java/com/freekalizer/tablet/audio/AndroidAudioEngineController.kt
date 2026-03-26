@@ -68,6 +68,8 @@ class AndroidAudioEngineController(
 
     fun isRunning(): Boolean = engine.state == AudioEngineState.RUNNING
 
+    fun meterSnapshot(): AudioMeterSnapshot = backend.meterSnapshot()
+
     /**
      * Stops + restarts the core engine to apply new audio device routing safely.
      *

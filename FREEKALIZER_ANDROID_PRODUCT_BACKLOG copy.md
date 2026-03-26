@@ -267,7 +267,7 @@ Stories:
 - `E1-S1` (P0, done) Build base audio engine initialization and teardown. (Core lifecycle + tests in `core`; Android monitoring backend now drives `AudioEngine` via real `AudioRecord`/`AudioTrack` loop with PCM_16 conversion and no-audio-thread allocations.)
 - `E1-S2` (P0, done) Implement input/output device enumeration and selection. (Android `AudioDeviceRepository` + UI selection spinners.)
 - `E1-S3` (P0, done) Implement audio route change handling (plug/unplug/fallback). (Device callback + fallback in `AudioDeviceRepository`; UI-driven safe rebind stop/start in controller; preferred device routing attempted via `setPreferredDevice` when supported.)
-- `E1-S4` (P1, todo) Add overload/clipping detection and UI meter.
+- `E1-S4` (P1, done) Add overload/clipping detection and UI meter. (Backend peak + clip hold metering, controller snapshot API, and UI display for IN/OUT level and OVERLOAD status.)
 
 Acceptance criteria:
 
@@ -487,6 +487,7 @@ Defer:
 - `2026-03-25` - Fixed Android build config by enabling AndroidX in `gradle.properties` and cleaning `local.properties`; verified `./gradlew :app:assembleDebug` succeeds.
 - `2026-03-25` - Implemented Android device enumeration/selection UI and route-change callback handling (`E1-S2` done, `E1-S3` in progress), added mic permission plumbing, and verified `./gradlew :app:assembleDebug` succeeds with these changes.
 - `2026-03-26` - Replaced Android audio backend placeholder with a real `AudioRecord`/`AudioTrack` monitoring loop (PCM_16 with float conversion into core), wired device selection into safe stop/start rebind for route handling, and verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Completed `E1-S4` by adding backend peak/clipping detection with clip hold timing, exposing meter snapshots via controller, adding IN/OUT meter + OVERLOAD indicators in UI, and verifying `./gradlew :core:test` + `:app:assembleDebug` succeed.
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!

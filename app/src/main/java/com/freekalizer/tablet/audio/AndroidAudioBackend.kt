@@ -8,6 +8,7 @@ import android.media.AudioManager
 import android.media.AudioRecord
 import android.media.AudioTrack
 import android.media.MediaRecorder
+import android.os.SystemClock
 import android.util.Log
 import com.freekalizer.audio.AudioBackend
 import com.freekalizer.audio.AudioEngineConfig
@@ -40,9 +41,31 @@ class AndroidAudioBackend(
     @Volatile
     private var preferredOutputDeviceId: Int? = null
 
+    @Volatile
+    private var inputPeak: Float = 0f
+    @Volatile
+    private var outputPeak: Float = 0f
+    @Volatile
+    private var inputClipUntilMs: Long = 0L
+    @Volatile
+    private var outputClipUntilMs: Long = 0L
+
+    private val clipThreshold = 0.98f
+    private val clipHoldMs = 750L
+
     fun setPreferredDevices(inputId: Int?, outputId: Int?) {
         preferredInputDeviceId = inputId
         preferredOutputDeviceId = outputId
+    }
+
+    fun meterSnapshot(): AudioMeterSnapshot {
+        val now = SystemClock.elapsedRealtime()
+        return AudioMeterSnapshot(
+            inputPeak = inputPeak,
+            outputPeak = outputPeak,
+            inputClipping = now <= inputClipUntilMs,
+            outputClipping = now <= outputClipUntilMs
+        )
     }
 
     override fun start(config: AudioEngineConfig, processor: AudioProcessor) {
@@ -116,6 +139,10 @@ class AndroidAudioBackend(
         worker = null
 
         running = false
+        inputPeak = 0f
+        outputPeak = 0f
+        inputClipUntilMs = 0L
+        outputClipUntilMs = 0L
     }
 
     private fun channelMaskIn(channels: Int): Int = when (channels) {
@@ -280,10 +307,35 @@ class AndroidAudioBackend(
             val outSamples = framesActual * outputChannels
             val clampMin = -1.0f
             val clampMax = 1.0f
+
+            var burstInputPeak = 0f
+            var burstOutputPeak = 0f
+            var inputClipped = false
+            var outputClipped = false
+
+            if (inputChannels > 0) {
+                val inSamples = framesActual * inputChannels
+                for (i in 0 until inSamples) {
+                    val a = kotlin.math.abs(inputFloat[i])
+                    if (a > burstInputPeak) burstInputPeak = a
+                    if (a >= clipThreshold) inputClipped = true
+                }
+            }
+
             for (i in 0 until outSamples) {
                 val v = max(clampMin, min(clampMax, outputFloat[i]))
+                val a = kotlin.math.abs(v)
+                if (a > burstOutputPeak) burstOutputPeak = a
+                if (a >= clipThreshold) outputClipped = true
                 outputShort[i] = (v * 32767f).toInt().toShort()
             }
+
+            // Apply short decay to make meter readable while still responsive.
+            inputPeak = max(burstInputPeak, inputPeak * 0.85f)
+            outputPeak = max(burstOutputPeak, outputPeak * 0.85f)
+            val now = SystemClock.elapsedRealtime()
+            if (inputClipped) inputClipUntilMs = now + clipHoldMs
+            if (outputClipped) outputClipUntilMs = now + clipHoldMs
 
             if (outSamples > 0) {
                 track.write(outputShort, 0, outSamples, AudioTrack.WRITE_BLOCKING)

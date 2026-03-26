@@ -2,7 +2,9 @@ package com.freekalizer.tablet
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Handler
 import android.os.Bundle
+import android.os.Looper
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -25,6 +27,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var inputSpinner: Spinner
     private lateinit var outputSpinner: Spinner
     private lateinit var routeStatus: TextView
+    private lateinit var meterStatus: TextView
+
+    private val meterHandler = Handler(Looper.getMainLooper())
+    private val meterTicker = object : Runnable {
+        override fun run() {
+            updateMeterUi()
+            meterHandler.postDelayed(this, 100L)
+        }
+    }
 
     private var inputItems: List<Pair<String, Int?>> = emptyList()
     private var outputItems: List<Pair<String, Int?>> = emptyList()
@@ -55,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         outputSpinner = Spinner(this)
 
         routeStatus = TextView(this)
+        meterStatus = TextView(this)
         val start = Button(this).apply {
             text = "Start Monitoring"
             setOnClickListener {
@@ -83,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         container.addView(TextView(this).apply { text = "Output Device" })
         container.addView(outputSpinner)
         container.addView(routeStatus)
+        container.addView(meterStatus)
         container.addView(start)
         container.addView(stop)
 
@@ -98,10 +111,12 @@ class MainActivity : AppCompatActivity() {
             updateDeviceUi()
             syncEngineControllerToSelection(rebind = true)
         }
+        meterHandler.post(meterTicker)
     }
 
     override fun onStop() {
         super.onStop()
+        meterHandler.removeCallbacks(meterTicker)
         repo.stop()
     }
 
@@ -156,6 +171,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateMeterUi() {
+        val meter = engineController.meterSnapshot()
+        meterStatus.text = buildString {
+            append("IN LEVEL: ${toPercent(meter.inputPeak)}%  ")
+            append("OVERLOAD IN: ${if (meter.inputClipping) "YES" else "NO"}\n")
+            append("OUT LEVEL: ${toPercent(meter.outputPeak)}%  ")
+            append("OVERLOAD OUT: ${if (meter.outputClipping) "YES" else "NO"}")
+        }
+    }
+
     private fun updatePermissionUi() {
         val granted = isMicPermissionGranted()
         permissionStatus.text = "Mic permission: ${if (granted) "GRANTED" else "NOT GRANTED"}"
@@ -191,6 +216,11 @@ class MainActivity : AppCompatActivity() {
         engineController.setPreferredDevices(repo.selectedInputId, repo.selectedOutputId)
         if (rebind) engineController.rebindIfRunning()
         updateRouteStatus()
+    }
+
+    private fun toPercent(v: Float): Int {
+        val clamped = v.coerceIn(0f, 1f)
+        return (clamped * 100f).toInt()
     }
 
     companion object {
