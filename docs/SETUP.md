@@ -42,7 +42,7 @@ Android app module now exists. To build/run Android targets locally, also instal
 - Install Android SDK Platform for API 29+
 - Install Android SDK Build-Tools and platform-tools
 
-Then set your SDK path in repo root `local.properties`:
+Then set your SDK path in repo root `local.properties` (gitignored; copy from `local.properties.example` if needed):
 
 ```properties
 sdk.dir=/Users/<you>/Library/Android/sdk

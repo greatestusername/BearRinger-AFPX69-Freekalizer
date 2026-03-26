@@ -1,0 +1,5 @@
+# Android Studio normally creates `local.properties` for you when you open this project.
+# If Gradle sync fails with "SDK location not found", copy this file to `local.properties`
+# and set sdk.dir to your Android SDK path (no quotes).
+
+sdk.dir=/Users/YOU/Library/Android/sdk

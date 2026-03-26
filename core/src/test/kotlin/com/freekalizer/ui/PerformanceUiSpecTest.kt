@@ -26,5 +26,6 @@ class PerformanceUiSpecTest {
         assertTrue(samplerZone.requiredControls.contains(ManualLabels.PLAY_STOP))
         assertTrue(samplerZone.requiredControls.contains(ManualLabels.SHOT))
         assertTrue(samplerZone.requiredControls.contains(ManualLabels.REV))
+        assertTrue(samplerZone.requiredControls.contains(ManualLabels.FX_ROUTE))
     }
 }

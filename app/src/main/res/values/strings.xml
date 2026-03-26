@@ -1,4 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Freekalizer Tablet</string>
+    <string name="zone_top_status">Top — input, meters, BPM, master pitch</string>
+    <string name="zone_sampler">Sampler — transport, loop length, FX route</string>
+    <string name="zone_eq">EQ + kill (coming)</string>
+    <string name="zone_performance">Performance — wheel + effects (coming)</string>
+    <string name="label_input_device">Input device</string>
+    <string name="label_output_device">Output device</string>
+    <string name="label_rec_length_quantized">Loop length (quantized REC)</string>
+    <string name="label_free_rec_cap">Free REC max duration</string>
+    <string name="placeholder_bpm">BPM: — (E5 tap/auto TBD)</string>
+    <string name="placeholder_master_pitch">MASTER PITCH: — (E3 TBD)</string>
+    <string name="placeholder_sample_pitch">SAMPLE PITCH: — (E3 TBD)</string>
+    <string name="placeholder_scratch">SCRATCH / DATA WHEEL — gesture (E4)</string>
+    <string name="control_coming">%1$s — TBD</string>
+    <string name="grant_mic">Grant mic (RECORD_AUDIO)</string>
+    <string name="start_monitoring">Start monitoring</string>
+    <string name="stop_monitoring">Stop</string>
+    <string name="rec_quantized">REC (quantized)</string>
+    <string name="rec_free">REC (free / capped)</string>
+    <string name="end_free_rec">End free REC now</string>
+    <string name="play_stop">PLAY/STOP</string>
+    <string name="fx_route_on">FX ROUTE: effects bus</string>
+    <string name="fx_route_off">FX ROUTE: bypass</string>
+    <string name="shot_hold">SHOT (hold)</string>
+    <string name="rev_on">REV: backward</string>
+    <string name="rev_off">REV: forward</string>
+    <string name="eq_low">LOW</string>
+    <string name="eq_mid">MID</string>
+    <string name="eq_high">HIGH</string>
+    <string name="eq_kill">KILL</string>
+    <string name="fx_filter">FILTER</string>
+    <string name="fx_flanger">FLANGER</string>
+    <string name="fx_delay">DELAY</string>
+    <string name="fx_mix">MIX</string>
 </resources>
+

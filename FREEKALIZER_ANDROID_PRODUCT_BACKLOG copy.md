@@ -283,12 +283,12 @@ Goal: production-grade sampler workflow matching core DFX behavior.
 
 Stories:
 
-- `E2-S1` (P0, todo) Record quantized loop lengths (1/2/4/8/16 bars).
-- `E2-S2` (P0, todo) Implement free-length recording mode with cap.
-- `E2-S3` (P0, todo) Implement loop playback (`PLAY/STOP`).
-- `E2-S4` (P0, todo) Implement momentary playback (`SHOT`).
-- `E2-S5` (P1, todo) Implement reverse playback (`REV`).
-- `E2-S6` (P0, todo) Implement sampler FX routing toggle.
+- `E2-S1` (P0, done) Record quantized loop lengths (1/2/4/8/16 bars). (Portable core quantized recorder + tests implemented; Android `REC` bar-length selector and quantized recording trigger/progress wiring added.)
+- `E2-S2` (P0, done) Implement free-length recording mode with cap. (`FrameCappedSamplerRecorder` + `FreeRecordMath` in `core`; Android capped free `REC` with selectable max seconds and “end free REC now”; mutual exclusion with quantized `REC`.)
+- `E2-S3` (P0, done) Implement loop playback (`PLAY/STOP`). (`SamplerLoopPlayer` mixes loaded `SamplerBuffer` into the monitoring output; `PLAY/STOP` toggles continuous loop; tests in `core`.)
+- `E2-S4` (P0, done) Implement momentary playback (`SHOT`). (Separate shot read pointer + gate in `SamplerLoopPlayer.mixShotInto`; each press rewinds to sample start; loops while held; wired through FX-route and direct paths; `SHOT (hold)` button with touch + `requestDisallowInterceptTouchEvent` so `ScrollView` does not steal the gesture; theme fix `Widget.Freekalizer.SectionTitle` parent to `@android:style/Widget.TextView` to avoid inflation crashes on some builds.)
+- `E2-S5` (P1, done) Implement reverse playback (`REV`). (`SamplerLoopPlayer` backward loop/SHOT with wrap; `reverseRequested` survives new captures; Android `ToggleButton` + status line; unit test for backward order.)
+- `E2-S6` (P0, done) Implement sampler FX routing toggle. (`SamplerFxRouteIntent` in `core`; Android audio path uses dedicated `fxBusScratch` when routed through effects bus—identity today, ready for E3 main pitch + E4 DSP; `ToggleButton` + status in UI; `ManualLabels.FX_ROUTE` in blueprint.)
 - `E2-S7` (P1, todo) Display sampler progress, mode, and remaining time.
 
 Acceptance criteria:
@@ -383,7 +383,7 @@ Goal: touch-first live performance interface.
 
 Stories:
 
-- `E7-S1` (P1, in_progress) Build tablet layout with dedicated sections. (Shared DFX69 tablet UI blueprint contract + tests added in `core`; Android UI rendering pending.)
+- `E7-S1` (P1, done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android scrollable four-zone layout in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; disabled placeholders for SHOT/REV/EQ/effects until later stories.)
 - `E7-S2` (P1, todo) Implement large controls and press/hold interactions.
 - `E7-S3` (P1, todo) Add clear state indicators (recording, clipping, bpm lock, fx route).
 - `E7-S4` (P2, todo) Add optional dark stage mode and high-contrast labels.
@@ -488,10 +488,18 @@ Defer:
 - `2026-03-25` - Implemented Android device enumeration/selection UI and route-change callback handling (`E1-S2` done, `E1-S3` in progress), added mic permission plumbing, and verified `./gradlew :app:assembleDebug` succeeds with these changes.
 - `2026-03-26` - Replaced Android audio backend placeholder with a real `AudioRecord`/`AudioTrack` monitoring loop (PCM_16 with float conversion into core), wired device selection into safe stop/start rebind for route handling, and verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
 - `2026-03-26` - Completed `E1-S4` by adding backend peak/clipping detection with clip hold timing, exposing meter snapshots via controller, adding IN/OUT meter + OVERLOAD indicators in UI, and verifying `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Started `E2-S1` by adding portable quantized sampler recording core (`QuantizedBars`, frame-target math, and `QuantizedSamplerRecorder`) with tests for 1/2/4/8/16-bar behavior; verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Completed `E2-S1` by wiring Android `REC` quantized recording controls (bar selector + trigger + progress/last-capture status) to core sampler recording primitives; verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Completed `E2-S2` and `E2-S3`: portable `SamplerBuffer`, `FrameCappedSamplerRecorder`, `SamplerLoopPlayer`, and `FreeRecordMath` with unit tests; Android engine mixes loop playback post-monitor with output clamping; UI adds free capped `REC`, early stop, and `PLAY/STOP` loop toggle; verified `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Completed `E2-S4` `SHOT` momentary playback + inflation hardening (`SectionTitle` style parent); verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Completed `E7-S1` Android tablet section layout: `activity_main.xml` + theme/colors + view binding for visible four-zone UI on dark background; verified `./gradlew :app:assembleDebug`.
+- `2026-03-26` - Completed `E2-S6` sampler FX route: core `SamplerFxRouteIntent`, effects-bus scratch buffer in the monitoring callback, UI toggle and blueprint label `FX ROUTE`; verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Fixed startup crash from device spinner feedback loop (`updateDeviceUi` → `onItemSelected` → `emit` → repeat): suppress spinner callbacks while rebinding, restore selection to match `AudioDeviceRepository`, emit only on real selection changes, idempotent `AudioDeviceRepository.start` / `emit` on device plug-in; completed `E2-S5` `REV` reverse loop/SHOT; README note on installing emulator system images; verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Hardening for API 34 / emulator: detach input/output spinner listeners while swapping adapters; defer `syncEngineControllerToSelection` to a posted runnable (coalesced) so route/rebind is not synchronous with stream setup; non-reentrant `rebindIfRunning` guard in `AndroidAudioEngineController`.
+- `2026-03-26` - **Root startup crash fix:** `AndroidAudioEngineController` must not be constructed as an Activity field (runs before `onCreate`); `Activity.getSystemService` throws `IllegalStateException` — instantiate after `super.onCreate()` in `MainActivity`. Verified with `adb install` + `am start` on API 34 emulator (process stays alive).
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
 - Do not make up or lie about solutions. If you are unsure ask or search the web for context
 - make sure you create a README.md and Documentation for how to build/test/run the software. 
-- When you do a set of work or issues/tickets make a document detailing that work and the date/time. MAKE SURE THAT DOC INCLUDES ALL OF THESE RULES
 - Make sure you update the requirements documents and other docs as you go

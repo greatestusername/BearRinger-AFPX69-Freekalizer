@@ -31,6 +31,7 @@ object ManualLabels {
     const val FLANGER = "FLANGER"
     const val DELAY = "DELAY"
     const val SCRATCH = "SCRATCH"
+    const val FX_ROUTE = "FX ROUTE"
 }
 
 data class ZoneSpec(
@@ -66,7 +67,7 @@ object Dfx69TabletUiBlueprint {
                     ManualLabels.SHOT,
                     ManualLabels.REV,
                     "LOOP LENGTH",
-                    "FX ROUTE",
+                    ManualLabels.FX_ROUTE,
                     "SAMPLE ${ManualLabels.PITCH}"
                 )
             ),

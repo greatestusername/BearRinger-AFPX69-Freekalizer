@@ -24,9 +24,13 @@ class AudioDeviceRepository(context: Context) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var callback: ((List<AudioDevice>) -> Unit)? = null
 
+    @Volatile
+    private var deviceCallbackRegistered: Boolean = false
+
     private val deviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
             refresh()
+            emit()
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
@@ -52,21 +56,29 @@ class AudioDeviceRepository(context: Context) {
         if (selectedInputId == null) selectedInputId = pickDefaultInputId()
         if (selectedOutputId == null) selectedOutputId = pickDefaultOutputId()
 
-        audioManager.registerAudioDeviceCallback(deviceCallback, mainHandler)
+        if (!deviceCallbackRegistered) {
+            audioManager.registerAudioDeviceCallback(deviceCallback, mainHandler)
+            deviceCallbackRegistered = true
+        }
         emit()
     }
 
     fun stop() {
         callback = null
-        audioManager.unregisterAudioDeviceCallback(deviceCallback)
+        if (deviceCallbackRegistered) {
+            audioManager.unregisterAudioDeviceCallback(deviceCallback)
+            deviceCallbackRegistered = false
+        }
     }
 
     fun setSelectedInput(id: Int?) {
+        if (selectedInputId == id) return
         selectedInputId = id
         emit()
     }
 
     fun setSelectedOutput(id: Int?) {
+        if (selectedOutputId == id) return
         selectedOutputId = id
         emit()
     }
