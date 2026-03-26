@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.tweakalizer.timing.TimingSourceRegistryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-03-25T21:29:29" hostname="MacBearPigs-MacBook-Pro.local" time="0.01">
-  <properties/>
-  <testcase name="defaultsToInternalSource()" classname="com.tweakalizer.timing.TimingSourceRegistryTest" time="0.005"/>
-  <testcase name="switchesToRegisteredLinkSourceAndFallsBackOnUnregister()" classname="com.tweakalizer.timing.TimingSourceRegistryTest" time="0.001"/>
-  <testcase name="setActiveReturnsFalseWhenSourceMissing()" classname="com.tweakalizer.timing.TimingSourceRegistryTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

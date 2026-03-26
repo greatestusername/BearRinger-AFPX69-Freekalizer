@@ -1,8 +1,8 @@
-# Tweakalizer Android App - Living Requirements and Backlog
+# Freekalizer Android App - Living Requirements and Backlog
 
 ## Document Purpose
 
-This is the primary, living product document for the Tweakalizer tablet app effort. It captures:
+This is the primary, living product document for the Freekalizer tablet app effort. It captures:
 
 - Original project context and goals
 - Product requirements (Android-first, iOS-portable)
@@ -17,7 +17,7 @@ Update this file as scope, priorities, and technical decisions evolve.
 
 Project intent:
 
-- Build an Android tablet app inspired by the Behringer Tweakalizer DFX69. Follow all best practices for Audio Latency sensitive apps on tablets!
+- Build an Android tablet app inspired by the Behringer Freekalizer DFX69. Follow all best practices for Audio Latency sensitive apps on tablets!
 - App must accept input from Android audio input paths (mic/headset/line-in/USB where available).
 - App must play output through Android output paths (speaker/headphone jack/USB output where available).
 - Highest priority is the sampling workflow and LOW LATENCY FOR PERFORMANCE
@@ -31,7 +31,7 @@ Project intent:
 
 Reference manual:
 
-- `Behringer-Tweakalizer-dfx69-manual.pdf`
+- `Behringer-Freekalizer-dfx69-manual.pdf`
 
 ---
 
@@ -426,3 +426,6 @@ Defer:
 - `2026-03-25` - Initial living requirements + backlog document created from DFX69 context and project goals.
 - `2026-03-25` - Added Ableton Link feasibility assessment, effort estimates, Phase 2 Link epic (E9), timing abstraction ticket updates, and latency benchmark ticket.
 
+# RULES FOR CURSOR / CLAUDE / LLM
+- FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
+- Do not make up or lie about solutions. If you are unsure ask or search the web for context

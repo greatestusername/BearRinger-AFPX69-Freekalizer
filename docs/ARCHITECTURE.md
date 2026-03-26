@@ -12,7 +12,7 @@
 
 Android-specific layer:
 
-- Package/app ID: `com.tweakalizer.tablet`
+- Package/app ID: `com.freekalizer.tablet`
 - Activity scaffold and Android resources
 - Adapter layer that implements core `AudioBackend` contract
 - Keeps platform lifecycle concerns out of portable core classes
@@ -21,20 +21,20 @@ Android-specific layer:
 
 Portable Kotlin logic:
 
-- `com.tweakalizer.audio`
+- `com.freekalizer.audio`
   - `AudioEngine` lifecycle/state model
   - `AudioBackend` abstraction for platform adapter implementations
   - `AudioProcessor` callback contract
-- `com.tweakalizer.timing`
+- `com.freekalizer.timing`
   - Timing source abstraction (`Internal BPM` and future `Ableton Link`)
   - Registry for runtime source switching and fallback behavior
-- `com.tweakalizer.ui`
+- `com.freekalizer.ui`
   - DFX69 tablet UI blueprint contract and manual-parity naming tokens
 
 ## Design Decisions
 
 - API level target baseline: Android API 29+.
-- Planned package/app ID for Android module scaffolding: `com.tweakalizer.tablet`.
+- Planned package/app ID for Android module scaffolding: `com.freekalizer.tablet`.
 - UI parity terms are centralized in `ManualLabels` to prevent drift and duplicated strings.
 
 ## Next Implementation Steps

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.tweakalizer.tablet.app-mergeDebugResources-2:/values-xlarge-v4/values-xlarge-v4.xml",
+            "outputFile": "com.freekalizer.tablet.app-mergeDebugResources-2:/values-xlarge-v4/values-xlarge-v4.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/fb88f581d26d53fe5da6c004a42c9a02/transformed/appcompat-1.7.0/res/values-xlarge-v4/values-xlarge-v4.xml",
+                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/fb88f581d26d53fe5da6c004a42c9a02/transformed/appcompat-1.7.0/res/values-xlarge-v4/values-xlarge-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7",
                         "startColumns": "4,4,4,4,4,4",

@@ -1,4 +1,4 @@
-com.tweakalizer.tablet
+com.freekalizer.tablet
 anim abc_fade_in
 anim abc_fade_out
 anim abc_grow_fade_in_from_bottom
@@ -1176,7 +1176,7 @@ style Theme_AppCompat_Light_Dialog_MinWidth
 style Theme_AppCompat_Light_DialogWhenLarge
 style Theme_AppCompat_Light_NoActionBar
 style Theme_AppCompat_NoActionBar
-style Theme_Tweakalizer
+style Theme_Freekalizer
 style ThemeOverlay_AppCompat
 style ThemeOverlay_AppCompat_ActionBar
 style ThemeOverlay_AppCompat_Dark

@@ -1,6 +1,6 @@
-# Tweakalizer Tablet
+# Freekalizer Tablet
 
-Android-first, low-latency audio app foundation inspired by the Behringer Tweakalizer DFX69 workflow.
+Android-first, low-latency audio app foundation inspired by the Behringer Freekalizer DFX69 workflow.
 
 Current repo status:
 
@@ -11,7 +11,7 @@ Current repo status:
 
 The product requirements and backlog live in:
 
-- `TWEAKALIZER_ANDROID_PRODUCT_BACKLOG copy.md`
+- `FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md`
 
 ## Quick Start
 
@@ -30,13 +30,13 @@ Detailed install and workflow docs:
 
 ## Project Layout
 
-- `app/` - Android app module scaffold (`com.tweakalizer.tablet`)
+- `app/` - Android app module scaffold (`com.freekalizer.tablet`)
 - `core/` - portable logic (audio engine contracts, timing model, UI blueprint contract)
 - `docs/` - setup and build/test/run documentation
-- `TWEAKALIZER_ANDROID_PRODUCT_BACKLOG copy.md` - living requirements and backlog
+- `FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md` - living requirements and backlog
 
 ## Notes
 
 - Minimum Android API target is planned as API 29+.
-- App/package ID target for Android scaffolding: `com.tweakalizer.tablet`.
+- App/package ID target for Android scaffolding: `com.freekalizer.tablet`.
 - Use Gradle wrapper commands (`./gradlew ...`) for consistent builds.

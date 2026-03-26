@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.tweakalizer.tablet"
+    namespace = "com.freekalizer.tablet"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.tweakalizer.tablet"
+        applicationId = "com.freekalizer.tablet"
         minSdk = 29
         targetSdk = 34
         versionCode = 1

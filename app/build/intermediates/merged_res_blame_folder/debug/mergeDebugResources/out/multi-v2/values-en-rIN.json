@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.tweakalizer.tablet.app-mergeDebugResources-2:/values-en-rIN/values-en-rIN.xml",
+            "outputFile": "com.freekalizer.tablet.app-mergeDebugResources-2:/values-en-rIN/values-en-rIN.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/fb88f581d26d53fe5da6c004a42c9a02/transformed/appcompat-1.7.0/res/values-en-rIN/values-en-rIN.xml",
+                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/fb88f581d26d53fe5da6c004a42c9a02/transformed/appcompat-1.7.0/res/values-en-rIN/values-en-rIN.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/res/values-en-rIN/values-en-rIN.xml",
+                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/res/values-en-rIN/values-en-rIN.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",

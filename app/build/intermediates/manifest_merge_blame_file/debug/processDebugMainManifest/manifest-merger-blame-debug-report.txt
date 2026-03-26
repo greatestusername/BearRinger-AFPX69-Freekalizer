@@ -1,6 +1,6 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="com.tweakalizer.tablet"
+3    package="com.freekalizer.tablet"
 4    android:versionCode="1"
 5    android:versionName="0.1.0" >
 6
@@ -13,22 +13,22 @@
 11-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:3:22-68
 12
 13    <permission
-13-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
-14        android:name="com.tweakalizer.tablet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-14-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+13-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+14        android:name="com.freekalizer.tablet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+14-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
 15        android:protectionLevel="signature" />
-15-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+15-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
 16
-17    <uses-permission android:name="com.tweakalizer.tablet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-17-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
-17-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+17    <uses-permission android:name="com.freekalizer.tablet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+17-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+17-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 18
 19    <application
 19-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:5:5-19:19
 20        android:allowBackup="true"
 20-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:6:9-35
 21        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-21-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+21-->[androidx.core:core:1.13.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/1bfb95f0db18200d1b2418c3620c7f70/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 22        android:debuggable="true"
 23        android:extractNativeLibs="false"
 24        android:icon="@android:drawable/sym_def_app_icon"
@@ -37,11 +37,11 @@
 25-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:8:9-41
 26        android:supportsRtl="true"
 26-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:9:9-35
-27        android:theme="@style/Theme.Tweakalizer" >
+27        android:theme="@style/Theme.Freekalizer" >
 27-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:10:9-49
 28        <activity
 28-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:11:9-18:20
-29            android:name="com.tweakalizer.tablet.MainActivity"
+29            android:name="com.freekalizer.tablet.MainActivity"
 29-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:12:13-41
 30            android:exported="true" >
 30-->/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/AndroidManifest.xml:13:13-36
@@ -58,68 +58,68 @@
 36        </activity>
 37
 38        <provider
-38-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+38-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
 39            android:name="androidx.startup.InitializationProvider"
-39-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
-40            android:authorities="com.tweakalizer.tablet.androidx-startup"
-40-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
+39-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
+40            android:authorities="com.freekalizer.tablet.androidx-startup"
+40-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
 41            android:exported="false" >
-41-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
+41-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
 42            <meta-data
-42-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+42-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
 43                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-43-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
+43-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
 44                android:value="androidx.startup" />
-44-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
+44-->[androidx.emoji2:emoji2:1.3.0] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/c86e32a3c6fb820c3d9e5ec176597c64/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
 45            <meta-data
-45-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+45-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
 46                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-46-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+46-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
 47                android:value="androidx.startup" />
-47-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+47-->[androidx.lifecycle:lifecycle-process:2.6.2] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/37121bae500c1e2aae080b9307961e99/transformed/jetified-lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
 48            <meta-data
-48-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+48-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
 49                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-49-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+49-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
 50                android:value="androidx.startup" />
-50-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+50-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
 51        </provider>
 52
 53        <receiver
-53-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+53-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
 54            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-54-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+54-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
 55            android:directBootAware="false"
-55-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+55-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
 56            android:enabled="true"
-56-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+56-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
 57            android:exported="true"
-57-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+57-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
 58            android:permission="android.permission.DUMP" >
-58-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+58-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
 59            <intent-filter>
-59-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+59-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
 60                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-60-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
-60-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+60-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+60-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
 61            </intent-filter>
 62            <intent-filter>
-62-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+62-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
 63                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-63-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
-63-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+63-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+63-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
 64            </intent-filter>
 65            <intent-filter>
-65-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+65-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
 66                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-66-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
-66-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+66-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+66-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
 67            </intent-filter>
 68            <intent-filter>
-68-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+68-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
 69                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-69-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
-69-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/54a6826293a8af434b3453f6542e11c1/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+69-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+69-->[androidx.profileinstaller:profileinstaller:1.3.1] /private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/transforms-4/3a3eaddde6d58a8cd514c1f9d63b5061/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
 70            </intent-filter>
 71        </receiver>
 72    </application>

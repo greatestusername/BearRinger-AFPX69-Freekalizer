@@ -50,4 +50,4 @@ sdk.dir=/Users/<you>/Library/Android/sdk
 
 Package/app ID planned for scaffolding:
 
-- `com.tweakalizer.tablet`
+- `com.freekalizer.tablet`

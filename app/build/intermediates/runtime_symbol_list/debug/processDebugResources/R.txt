@@ -1175,7 +1175,7 @@ int style Theme_AppCompat_Light_Dialog_MinWidth 0x7f0d0106
 int style Theme_AppCompat_Light_DialogWhenLarge 0x7f0d0107
 int style Theme_AppCompat_Light_NoActionBar 0x7f0d0108
 int style Theme_AppCompat_NoActionBar 0x7f0d0109
-int style Theme_Tweakalizer 0x7f0d010a
+int style Theme_Freekalizer 0x7f0d010a
 int style ThemeOverlay_AppCompat 0x7f0d010b
 int style ThemeOverlay_AppCompat_ActionBar 0x7f0d010c
 int style ThemeOverlay_AppCompat_Dark 0x7f0d010d

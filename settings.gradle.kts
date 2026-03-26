@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "tweakalizer-tablet"
+rootProject.name = "freekalizer-tablet"
 
 include(":core")
 include(":app")

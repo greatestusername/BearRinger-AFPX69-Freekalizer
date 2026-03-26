@@ -1,6 +1,6 @@
 # Pass Plan: Device Routing + UI Scaffold (2026-03-25)
 
-This pass implements the next highest-priority Android MVP work from `TWEAKALIZER_ANDROID_PRODUCT_BACKLOG copy.md`, focusing on device routing visibility and correctness on tablets.
+This pass implements the next highest-priority Android MVP work from `FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md`, focusing on device routing visibility and correctness on tablets.
 
 ## Goals (this pass)
 
