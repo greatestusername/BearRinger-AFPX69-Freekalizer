@@ -100,6 +100,8 @@ class SamplerLoopPlayer {
         }
         if (down) {
             shotRewind = true
+            /** One-shot takes over; stop loop playback until PLAY is pressed again. */
+            looping = false
         }
         shotPressed = down
     }

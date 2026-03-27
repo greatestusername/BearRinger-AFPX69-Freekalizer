@@ -133,6 +133,28 @@ class SamplerLoopPlayerTest {
     }
 
     @Test
+    fun shotPressedInterruptsLoopPlayback() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(0.7f, 0.1f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setLooping(true)
+        assertTrue(p.isLooping())
+        p.setShotPressed(true)
+        assertFalse(p.isLooping())
+        val out = FloatArray(2)
+        p.mixInto(out, outputChannels = 1, frameCount = 2)
+        assertEquals(0f, out[0])
+        assertEquals(0f, out[1])
+        p.mixShotInto(out, outputChannels = 1, frameCount = 2)
+        assertEquals(0.7f, out[0])
+        assertTrue(abs(out[1] - 0.1f) < 1e-3f)
+    }
+
+    @Test
     fun clearStopsLoopAndShotImmediately() {
         val buf = SamplerBuffer(
             pcm = floatArrayOf(0.2f, 0.3f, 0.4f, 0.5f),

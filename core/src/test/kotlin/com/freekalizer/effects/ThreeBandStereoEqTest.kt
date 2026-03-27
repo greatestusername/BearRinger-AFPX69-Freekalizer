@@ -10,7 +10,7 @@ class ThreeBandStereoEqTest {
     fun flatEqRoughlyPreservesImpulseEnergy() {
         val eq = ThreeBandStereoEq()
         val sr = 48000
-        eq.syncCoefficients(sr, 0f, 0f, 0f, false, false, false, false)
+        eq.syncCoefficients(sr, 0f, 0f, 0f)
         val buf = floatArrayOf(1f, 1f, 0f, 0f, 0f, 0f)
         eq.processInterleavedStereo(buf, 3)
         val outEnergy = buf[0] * buf[0] + buf[1] * buf[1]
@@ -21,7 +21,7 @@ class ThreeBandStereoEqTest {
     fun killMidStronglyAttenuatesMidbandTone() {
         val eq = ThreeBandStereoEq()
         val sr = 48000
-        eq.syncCoefficients(sr, 0f, 0f, 0f, false, true, false, false)
+        eq.syncCoefficients(sr, 0f, ThreeBandStereoEq.KILL_DB, 0f)
         val n = 2048
         val buf = FloatArray(n * 2)
         for (f in 0 until n) {
@@ -35,6 +35,6 @@ class ThreeBandStereoEqTest {
         for (i in (n - 400) until n) {
             peak = kotlin.math.max(peak, kotlin.math.abs(buf[i * 2]))
         }
-        assertTrue(peak < 0.05f, "expected mid kill to cut 1.8 kHz tone, tail peak=$peak")
+        assertTrue(peak < 0.12f, "expected mid band cut at 1.8 kHz, tail peak=$peak")
     }
 }

@@ -277,7 +277,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="48dp"
                     android:max="2000"
-                    android:progress="1000"
+                    android:progress="0"
                     android:progressTint="@color/accent_led_cyan" />
 
                 <TextView
@@ -442,15 +442,17 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
-                android:layout_weight="1"
+                android:layout_weight="1.12"
                 android:orientation="vertical">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@string/eq_gain_legend"
                     android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
+                    android:textSize="10sp" />
 
                 <SeekBar
                     android:id="@+id/eq_low_seek"
@@ -458,7 +460,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="56dp"
                     android:max="1000"
-                    android:progress="500"
+                    android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
 
                 <SeekBar
@@ -467,7 +469,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="56dp"
                     android:max="1000"
-                    android:progress="500"
+                    android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
 
                 <SeekBar
@@ -476,7 +478,7 @@
                     android:layout_height="wrap_content"
                     android:minHeight="56dp"
                     android:max="1000"
-                    android:progress="500"
+                    android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
             </LinearLayout>
 
@@ -587,6 +589,16 @@
                     android:textColor="@color/text_primary"
                     android:textOff="@string/delay_feed_off"
                     android:textOn="@string/delay_feed_on" />
+
+                <ToggleButton
+                    android:id="@+id/tape_wow_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/tape_wow_off"
+                    android:textOn="@string/tape_wow_on" />
             </LinearLayout>
 
             <FrameLayout
@@ -668,6 +680,16 @@
                     android:textColor="@color/text_primary"
                     android:textOff="@string/flanger_off"
                     android:textOn="@string/flanger_on" />
+
+                <ToggleButton
+                    android:id="@+id/reverb_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/reverb_off"
+                    android:textOn="@string/reverb_on" />
             </LinearLayout>
         </LinearLayout>
 
@@ -998,8 +1020,8 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Master pitch span"
+                android:layout_marginTop="10dp"
+                android:text="Master pitch span (±12 / ±24 / ±50)"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp" />
 
@@ -1181,6 +1203,112 @@
                 android:max="1000"
                 android:minHeight="52dp"
                 android:progress="450"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/fx_reverb_section"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_reverb_space"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/reverb_space_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_reverb_decay"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/reverb_decay_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="48dp"
+                android:progress="550"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_reverb_wet"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/reverb_wet_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="48dp"
+                android:progress="200"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/fx_tape_section"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_tape_wow"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/tape_wow_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="48dp"
+                android:progress="400"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_tape_flutter"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/tape_flutter_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="48dp"
+                android:progress="450"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_tape_mix"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/tape_mix_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="48dp"
+                android:progress="420"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView

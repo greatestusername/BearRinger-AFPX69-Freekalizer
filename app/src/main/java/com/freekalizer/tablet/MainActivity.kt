@@ -36,6 +36,7 @@ import com.freekalizer.tablet.databinding.ActivityMainBinding
 import com.freekalizer.tablet.library.SampleLibraryStore
 import com.freekalizer.effects.FilterType
 import com.freekalizer.effects.FilterMode
+import com.freekalizer.effects.ThreeBandStereoEq
 import com.freekalizer.ui.ManualLabels
 
 class MainActivity : AppCompatActivity() {
@@ -50,14 +51,22 @@ class MainActivity : AppCompatActivity() {
 
     private var suppressFlangerBypassToggle: Boolean = false
 
+    private var suppressReverbToggle: Boolean = false
+
+    private var suppressTapeWowToggle: Boolean = false
+
+    private var suppressReverbSpaceSpinner: Boolean = false
+
     private var suppressEqSeek: Boolean = false
 
     private var scratchLastY: Float = 0f
     private var shotHeld: Boolean = false
-    private var eqLowCutEnabled: Boolean = false
-    private var eqMidCutEnabled: Boolean = false
-    private var eqHighCutEnabled: Boolean = false
-    private var eqAllCutEnabled: Boolean = false
+
+    /** Kill buttons: toggle between fader minimum ([ThreeBandStereoEq.MIN_DB]) and 0 dB. */
+    private var eqLowKillLatched: Boolean = false
+    private var eqMidKillLatched: Boolean = false
+    private var eqHighKillLatched: Boolean = false
+    private var eqKillAllLatched: Boolean = false
     /** Created in [onCreate] after [super.onCreate]; [Context.getSystemService] is invalid earlier. */
     private lateinit var engineController: AndroidAudioEngineController
 
@@ -69,6 +78,7 @@ class MainActivity : AppCompatActivity() {
             updatePitchLabels()
             updateRecordingUi()
             updateEqUi()
+            updateReverbTapeUi()
             updatePerformanceStateLeds()
             updateHoldInteractionUi()
             meterHandler.postDelayed(this, 100L)
@@ -255,6 +265,8 @@ class MainActivity : AppCompatActivity() {
         updateDelayUi()
         bindFlangerControls()
         updateFlangerUi()
+        bindReverbTapeControls()
+        updateReverbTapeUi()
         bindInputGainControl()
         bindScratchPresetControls()
         bindFxOrderControls()
@@ -533,6 +545,101 @@ class MainActivity : AppCompatActivity() {
             (engineController.flangerWetNorm() * 1000f).roundToInt().coerceIn(0, 1000)
     }
 
+    private fun bindReverbTapeControls() {
+        binding.reverbSpaceSpinner.adapter = spinnerAdapter(
+            listOf(getString(R.string.fx_reverb_hall), getString(R.string.fx_reverb_cathedral))
+        )
+        binding.reverbSpaceSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressReverbSpaceSpinner) return
+                engineController.setReverbCathedral(position == 1)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+
+        binding.reverbToggle.setOnCheckedChangeListener { _, checked ->
+            if (suppressReverbToggle) return@setOnCheckedChangeListener
+            engineController.setReverbEnabled(checked)
+        }
+
+        binding.tapeWowToggle.setOnCheckedChangeListener { _, checked ->
+            if (suppressTapeWowToggle) return@setOnCheckedChangeListener
+            engineController.setTapeWowEnabled(checked)
+        }
+
+        binding.reverbDecaySeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                engineController.setReverbDecayNorm(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+        })
+        binding.reverbWetSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                engineController.setReverbMixNorm(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+        })
+        binding.tapeWowSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                engineController.setTapeWowDepthNorm(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+        })
+        binding.tapeFlutterSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                engineController.setTapeFlutterDepthNorm(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+        })
+        binding.tapeMixSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (!fromUser) return
+                engineController.setTapeMixNorm(progress / 1000f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
+        })
+    }
+
+    private fun updateReverbTapeUi() {
+        suppressReverbToggle = true
+        binding.reverbToggle.isChecked = engineController.reverbEnabled()
+        suppressReverbToggle = false
+
+        suppressTapeWowToggle = true
+        binding.tapeWowToggle.isChecked = engineController.tapeWowEnabled()
+        suppressTapeWowToggle = false
+
+        suppressReverbSpaceSpinner = true
+        binding.reverbSpaceSpinner.setSelection(if (engineController.reverbCathedral()) 1 else 0, false)
+        suppressReverbSpaceSpinner = false
+
+        binding.reverbDecaySeek.progress =
+            (engineController.reverbDecayNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+        binding.reverbWetSeek.progress =
+            (engineController.reverbMixNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+        binding.tapeWowSeek.progress =
+            (engineController.tapeWowDepthNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+        binding.tapeFlutterSeek.progress =
+            (engineController.tapeFlutterDepthNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+        binding.tapeMixSeek.progress =
+            (engineController.tapeMixNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+    }
+
     private fun bindScratchPresetControls() {
         binding.scratchPresetSpinner.adapter = spinnerAdapter(scratchPresetItems.map { it.first })
         binding.scratchPresetSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -563,18 +670,99 @@ class MainActivity : AppCompatActivity() {
         if (idx >= 0) binding.fxOrderSpinner.setSelection(idx, false)
     }
 
-    private fun eqProgressToDb(progress: Int): Float =
-        (progress - 500) / 500f * 36f
+    private fun eqFaderMinDb(): Float = ThreeBandStereoEq.MIN_DB
+
+    private fun eqFaderMaxDb(): Float = ThreeBandStereoEq.BOOST_MAX_DB
+
+    private fun eqProgressToDb(progress: Int): Float {
+        val p = progress.coerceIn(0, 1000) / 1000f
+        return eqFaderMinDb() + p * (eqFaderMaxDb() - eqFaderMinDb())
+    }
 
     private fun eqDbToProgress(db: Float): Int =
-        ((db / 36f * 500f) + 500f).roundToInt().coerceIn(0, 1000)
+        ((db - eqFaderMinDb()) / (eqFaderMaxDb() - eqFaderMinDb()) * 1000f)
+            .roundToInt()
+            .coerceIn(0, 1000)
+
+    private fun eqFaderBottomDb(): Float = ThreeBandStereoEq.MIN_DB
+
+    private fun isNearFaderBottom(db: Float): Boolean =
+        kotlin.math.abs(db - eqFaderBottomDb()) <= 1.5f
+
+    /** Exit ALL CUT by zeroing bands; then caller applies the requested single-band kill. */
+    private fun clearEqKillAllToZero() {
+        if (!eqKillAllLatched) return
+        eqKillAllLatched = false
+        engineController.setEqLowDb(0f)
+        engineController.setEqMidDb(0f)
+        engineController.setEqHighDb(0f)
+    }
+
+    private fun toggleEqLowKill() {
+        clearEqKillAllToZero()
+        if (eqLowKillLatched) {
+            engineController.setEqLowDb(0f)
+            eqLowKillLatched = false
+        } else {
+            engineController.setEqLowDb(eqFaderBottomDb())
+            eqLowKillLatched = true
+        }
+        updateEqUi()
+    }
+
+    private fun toggleEqMidKill() {
+        clearEqKillAllToZero()
+        if (eqMidKillLatched) {
+            engineController.setEqMidDb(0f)
+            eqMidKillLatched = false
+        } else {
+            engineController.setEqMidDb(eqFaderBottomDb())
+            eqMidKillLatched = true
+        }
+        updateEqUi()
+    }
+
+    private fun toggleEqHighKill() {
+        clearEqKillAllToZero()
+        if (eqHighKillLatched) {
+            engineController.setEqHighDb(0f)
+            eqHighKillLatched = false
+        } else {
+            engineController.setEqHighDb(eqFaderBottomDb())
+            eqHighKillLatched = true
+        }
+        updateEqUi()
+    }
+
+    private fun toggleEqKillAll() {
+        if (eqKillAllLatched) {
+            engineController.setEqLowDb(0f)
+            engineController.setEqMidDb(0f)
+            engineController.setEqHighDb(0f)
+            eqKillAllLatched = false
+            eqLowKillLatched = false
+            eqMidKillLatched = false
+            eqHighKillLatched = false
+        } else {
+            engineController.setEqLowDb(eqFaderBottomDb())
+            engineController.setEqMidDb(eqFaderBottomDb())
+            engineController.setEqHighDb(eqFaderBottomDb())
+            eqKillAllLatched = true
+            eqLowKillLatched = false
+            eqMidKillLatched = false
+            eqHighKillLatched = false
+        }
+        updateEqUi()
+    }
 
     private fun bindEqControls() {
         binding.eqLowSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (suppressEqSeek || !fromUser) return
-                if (eqLowCutEnabled) eqLowCutEnabled = false
-                engineController.setEqLowDb(eqProgressToDb(progress))
+                val db = eqProgressToDb(progress)
+                if (eqKillAllLatched) eqKillAllLatched = false
+                if (!isNearFaderBottom(db)) eqLowKillLatched = false
+                engineController.setEqLowDb(db)
             }
 
             override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
@@ -583,8 +771,10 @@ class MainActivity : AppCompatActivity() {
         binding.eqMidSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (suppressEqSeek || !fromUser) return
-                if (eqMidCutEnabled) eqMidCutEnabled = false
-                engineController.setEqMidDb(eqProgressToDb(progress))
+                val db = eqProgressToDb(progress)
+                if (eqKillAllLatched) eqKillAllLatched = false
+                if (!isNearFaderBottom(db)) eqMidKillLatched = false
+                engineController.setEqMidDb(db)
             }
 
             override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
@@ -593,26 +783,20 @@ class MainActivity : AppCompatActivity() {
         binding.eqHighSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (suppressEqSeek || !fromUser) return
-                if (eqHighCutEnabled) eqHighCutEnabled = false
-                engineController.setEqHighDb(eqProgressToDb(progress))
+                val db = eqProgressToDb(progress)
+                if (eqKillAllLatched) eqKillAllLatched = false
+                if (!isNearFaderBottom(db)) eqHighKillLatched = false
+                engineController.setEqHighDb(db)
             }
 
             override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
             override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
         })
 
-        binding.eqLowKill.setOnClickListener {
-            toggleEqBandCut(Band.LOW)
-        }
-        binding.eqMidKill.setOnClickListener {
-            toggleEqBandCut(Band.MID)
-        }
-        binding.eqHighKill.setOnClickListener {
-            toggleEqBandCut(Band.HIGH)
-        }
-        binding.eqKillAll.setOnClickListener {
-            toggleEqAllCuts()
-        }
+        binding.eqLowKill.setOnClickListener { toggleEqLowKill() }
+        binding.eqMidKill.setOnClickListener { toggleEqMidKill() }
+        binding.eqHighKill.setOnClickListener { toggleEqHighKill() }
+        binding.eqKillAll.setOnClickListener { toggleEqKillAll() }
     }
 
     private fun bindInputGainControl() {
@@ -681,9 +865,9 @@ class MainActivity : AppCompatActivity() {
             updatePitchLabels()
         }
         installDoubleTapReset(binding.inputGainFrontSeek) {
-            binding.inputGainFrontSeek.progress = 1000
-            engineController.setInputMonitorGain(1f)
-            updateInputGainLabel(1f)
+            binding.inputGainFrontSeek.progress = 0
+            engineController.setInputMonitorGain(0f)
+            updateInputGainLabel(0f)
         }
         installDoubleTapReset(binding.filterCutoffSeek) {
             binding.filterCutoffSeek.progress = 550
@@ -693,19 +877,20 @@ class MainActivity : AppCompatActivity() {
             binding.filterResonanceSeek.progress = 250
             engineController.setFilterResonanceNorm(0.25f)
         }
+        val eqNeutral = eqDbToProgress(0f)
         installDoubleTapReset(binding.eqLowSeek) {
-            eqLowCutEnabled = false
-            binding.eqLowSeek.progress = 500
+            binding.eqLowSeek.progress = eqNeutral
+            eqLowKillLatched = false
             engineController.setEqLowDb(0f)
         }
         installDoubleTapReset(binding.eqMidSeek) {
-            eqMidCutEnabled = false
-            binding.eqMidSeek.progress = 500
+            binding.eqMidSeek.progress = eqNeutral
+            eqMidKillLatched = false
             engineController.setEqMidDb(0f)
         }
         installDoubleTapReset(binding.eqHighSeek) {
-            eqHighCutEnabled = false
-            binding.eqHighSeek.progress = 500
+            binding.eqHighSeek.progress = eqNeutral
+            eqHighKillLatched = false
             engineController.setEqHighDb(0f)
         }
         installDoubleTapReset(binding.delayFeedbackSeek) {
@@ -763,15 +948,7 @@ class MainActivity : AppCompatActivity() {
         hideSubmenu()
         binding.root.removeCallbacks(deferredDeviceRouteSync)
         shotHeld = false
-        eqLowCutEnabled = false
-        eqMidCutEnabled = false
-        eqHighCutEnabled = false
-        eqAllCutEnabled = false
         engineController.setShotPressed(false)
-        engineController.setEqKillLowHeld(false)
-        engineController.setEqKillMidHeld(false)
-        engineController.setEqKillHighHeld(false)
-        engineController.setEqKillAllHeld(false)
         engineController.setScratchTouchActive(false)
         meterHandler.removeCallbacks(meterTicker)
         repo.stop()
@@ -879,67 +1056,16 @@ class MainActivity : AppCompatActivity() {
         val active = ContextCompat.getColor(this, R.color.accent_led_cyan)
         val idle = ContextCompat.getColor(this, R.color.text_muted)
         binding.shotButton.setTextColor(if (shotHeld) active else idle)
-        binding.eqLowKill.setTextColor(if (eqLowCutEnabled || eqAllCutEnabled) active else idle)
-        binding.eqMidKill.setTextColor(if (eqMidCutEnabled || eqAllCutEnabled) active else idle)
-        binding.eqHighKill.setTextColor(if (eqHighCutEnabled || eqAllCutEnabled) active else idle)
-        binding.eqKillAll.setTextColor(if (eqAllCutEnabled) active else idle)
-    }
-
-    private enum class Band { LOW, MID, HIGH }
-
-    private fun toggleEqBandCut(band: Band) {
-        val cutDb = -36f
-        when (band) {
-            Band.LOW -> {
-                if (!eqLowCutEnabled) {
-                    eqLowCutEnabled = true
-                    engineController.setEqLowDb(cutDb)
-                } else {
-                    eqLowCutEnabled = false
-                    engineController.setEqLowDb(0f)
-                }
-            }
-            Band.MID -> {
-                if (!eqMidCutEnabled) {
-                    eqMidCutEnabled = true
-                    engineController.setEqMidDb(cutDb)
-                } else {
-                    eqMidCutEnabled = false
-                    engineController.setEqMidDb(0f)
-                }
-            }
-            Band.HIGH -> {
-                if (!eqHighCutEnabled) {
-                    eqHighCutEnabled = true
-                    engineController.setEqHighDb(cutDb)
-                } else {
-                    eqHighCutEnabled = false
-                    engineController.setEqHighDb(0f)
-                }
-            }
-        }
-        eqAllCutEnabled = eqLowCutEnabled && eqMidCutEnabled && eqHighCutEnabled
-        updateEqUi()
-    }
-
-    private fun toggleEqAllCuts() {
-        eqAllCutEnabled = !eqAllCutEnabled
-        if (eqAllCutEnabled) {
-            engineController.setEqLowDb(-36f)
-            engineController.setEqMidDb(-36f)
-            engineController.setEqHighDb(-36f)
-            eqLowCutEnabled = true
-            eqMidCutEnabled = true
-            eqHighCutEnabled = true
-        } else {
-            engineController.setEqLowDb(0f)
-            engineController.setEqMidDb(0f)
-            engineController.setEqHighDb(0f)
-            eqLowCutEnabled = false
-            eqMidCutEnabled = false
-            eqHighCutEnabled = false
-        }
-        updateEqUi()
+        binding.eqLowKill.setTextColor(
+            if (eqKillAllLatched || eqLowKillLatched) active else idle
+        )
+        binding.eqMidKill.setTextColor(
+            if (eqKillAllLatched || eqMidKillLatched) active else idle
+        )
+        binding.eqHighKill.setTextColor(
+            if (eqKillAllLatched || eqHighKillLatched) active else idle
+        )
+        binding.eqKillAll.setTextColor(if (eqKillAllLatched) active else idle)
     }
 
     private fun pushScratchAxes(e: MotionEvent, v: View, dyNorm: Float) {
@@ -1172,7 +1298,7 @@ class MainActivity : AppCompatActivity() {
         val sp = engineController.samplePitchPercent()
         val span = mainPitchMaxAbsPercentForUi().roundToInt()
         binding.masterPitchValue.text =
-            "MASTER ${ManualLabels.PITCH}: ${formatPitchPercent(mp)} (±${span}%, pitch-only)"
+            "MASTER ${ManualLabels.PITCH}: ${formatPitchPercent(mp)} (±${span}%, input + sampler pre-FX)"
         binding.samplePitchValue.text =
             "SAMPLE ${ManualLabels.PITCH}: ${formatPitchPercent(sp)} (pitch+tempo)"
     }

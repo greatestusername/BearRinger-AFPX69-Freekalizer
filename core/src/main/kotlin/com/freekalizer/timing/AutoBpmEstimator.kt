@@ -76,8 +76,9 @@ class AutoBpmEstimator(
             if (cooldownFrames > 0) {
                 cooldownFrames--
             } else {
-                val thresh = max(fluxEnv * 2.2f, 1e-9f)
-                if (rawFlux > thresh && rawFlux > 1e-8f) {
+                // Slightly lower ratio than 2.2 so real program material (not just impulses) crosses more often.
+                val thresh = max(fluxEnv * 1.45f, 1e-9f)
+                if (rawFlux > thresh && rawFlux > 1e-9f) {
                     recordOnset(globalFrame)
                     cooldownFrames = minIoiFrames
                 }
@@ -95,7 +96,7 @@ class AutoBpmEstimator(
     }
 
     private fun recomputeFromOnsets(minIoiFrames: Int, maxIoiFrames: Int) {
-        if (onsetCount < 4) {
+        if (onsetCount < 3) {
             lastConfidence = 0f
             return
         }
@@ -111,7 +112,7 @@ class AutoBpmEstimator(
                 intervals[k++] = d.toDouble()
             }
         }
-        if (k < 3) {
+        if (k < 2) {
             lastConfidence = 0f
             return
         }
@@ -150,12 +151,13 @@ class AutoBpmEstimator(
     }
 
     private companion object {
-        private const val FLUX_ENV_ALPHA: Float = 0.985f
+        /** Faster tracking than 0.985 so the envelope can follow musical transients. */
+        private const val FLUX_ENV_ALPHA: Float = 0.968f
     }
 }
 
 data class AutoBpmReading(
     val bpm: Double,
-    /** 0 = no reliable lock; use threshold (~0.35–0.5) before driving master BPM. */
+    /** 0 = no reliable lock; tablet follow uses ~0.07 once onset stream stabilizes. */
     val confidence: Float
 )

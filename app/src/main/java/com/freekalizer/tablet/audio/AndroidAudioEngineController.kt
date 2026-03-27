@@ -19,8 +19,10 @@ import com.freekalizer.effects.DelayBeatMath
 import com.freekalizer.effects.FilterMode
 import com.freekalizer.effects.FilterType
 import com.freekalizer.effects.FlangerBeatMath
+import com.freekalizer.effects.HallReverbStereo
 import com.freekalizer.effects.InterleavedFeedbackDelay
 import com.freekalizer.effects.ScratchRingBuffer
+import com.freekalizer.effects.TapeWowFlutterStereo
 import com.freekalizer.effects.StereoFlanger
 import com.freekalizer.effects.ThreeBandStereoEq
 import com.freekalizer.pitch.PitchKnobMath
@@ -30,6 +32,7 @@ import com.freekalizer.timing.AutoBpmReading
 import com.freekalizer.timing.InternalBpmTimingSource
 import com.freekalizer.timing.TapBpmEstimator
 import kotlin.math.abs
+import kotlin.math.exp
 import kotlin.math.sin
 import kotlin.math.PI
 import kotlin.math.pow
@@ -79,9 +82,9 @@ class AndroidAudioEngineController(
 
     private val loopPlayer = SamplerLoopPlayer()
 
-    /** Smaller STFT window / hop for less smear on transient material vs large 1024/256. */
-    private val mainPitchShifterL = StreamingCheapPitchShifterMono(fftSize = 512, hop = 128)
-    private val mainPitchShifterR = StreamingCheapPitchShifterMono(fftSize = 512, hop = 128)
+    /** High overlap (4096/256) for smoother PV; master pitch is pitch-only (no tempo change). */
+    private val mainPitchShifterMonitor = StreamingCheapPitchShifterMono(fftSize = 4096, hop = 256)
+    private val mainPitchShifterFxBus = StreamingCheapPitchShifterMono(fftSize = 4096, hop = 256)
 
     /** E4-S6: output-path EQ (applied after dry + sampler/FX sum). */
     private val monitorEq = ThreeBandStereoEq()
@@ -94,18 +97,6 @@ class AndroidAudioEngineController(
 
     @Volatile
     private var eqHighDb: Float = 0f
-
-    @Volatile
-    private var eqKillLowHeld: Boolean = false
-
-    @Volatile
-    private var eqKillMidHeld: Boolean = false
-
-    @Volatile
-    private var eqKillHighHeld: Boolean = false
-
-    @Volatile
-    private var eqKillAllHeld: Boolean = false
 
     @Volatile
     private var eqParamsDirty: Boolean = true
@@ -146,9 +137,8 @@ class AndroidAudioEngineController(
 
     private var monoPitchScratch: FloatArray = FloatArray(0)
     private var monoPitchOutScratch: FloatArray = FloatArray(0)
-    private var fxPostPitchScratch: FloatArray = FloatArray(0)
-    /** Pre-master-pitch dry copy for transient-preserving wet/dry blend. */
-    private var dryPrePitchScratch: FloatArray = FloatArray(0)
+    /** Pre–master-pitch monitor (input × monitor gain) before PV into [output]. */
+    private var monitorBaseScratch: FloatArray = FloatArray(0)
 
     @Volatile
     private var mainPitchPercent: Float = 0f
@@ -164,7 +154,13 @@ class AndroidAudioEngineController(
     private var mainMixNorm: Float = 0.80f
 
     @Volatile
-    private var inputMonitorGain: Float = 1f
+    private var inputMonitorGain: Float = 0f
+
+    /** Audio-thread slew toward target ratio (reduces zipper/robot on knob moves). */
+    private var mainPitchRatioSlewed: Float = 1f
+
+    /** Slow LFO phase for tiny pitch wander (vinyl-ish) when shifted away from unity. */
+    private var mainPitchWowPhase: Double = 0.0
 
     /**
      * Scratch bus for sampler audio when [samplerFxRoute] is [SamplerFxRouteIntent.THROUGH_EFFECTS_PATH].
@@ -189,6 +185,36 @@ class AndroidAudioEngineController(
 
     /** E4-S4 flanger after delay, before master pitch. */
     private var fxFlanger: StereoFlanger? = null
+
+    /** Hall/cathedral style stereo reverb after bus filter (FX chain tail). */
+    private var fxReverb: HallReverbStereo? = null
+
+    /** Tape-style wow / flutter before reverb on FX bus. */
+    private var fxTapeWow: TapeWowFlutterStereo? = null
+
+    @Volatile
+    private var reverbEnabled: Boolean = true
+
+    @Volatile
+    private var reverbCathedral: Boolean = false
+
+    @Volatile
+    private var reverbDecayNorm: Float = 0.55f
+
+    @Volatile
+    private var reverbMixNorm: Float = 0.20f
+
+    @Volatile
+    private var tapeWowEnabled: Boolean = false
+
+    @Volatile
+    private var tapeWowDepthNorm: Float = 0.40f
+
+    @Volatile
+    private var tapeFlutterDepthNorm: Float = 0.45f
+
+    @Volatile
+    private var tapeMixNorm: Float = 0.42f
 
     /** E4-S5 scratch ring (post-delay tap on FX bus). */
     private var scratchRing: ScratchRingBuffer? = null
@@ -251,9 +277,15 @@ class AndroidAudioEngineController(
     @Volatile
     private var bpmAutoFollowEnabled: Boolean = false
 
+    /**
+     * Smoothed BPM track for AUTO follow (audio thread). Avoids hammering [internalBpm] with noisy estimates.
+     */
+    @Volatile
+    private var autoBpmEma: Double = 120.0
+
     companion object {
-        /** When [bpmAutoFollowEnabled], apply auto-detected BPM only at or above this confidence (E5-S3). */
-        private const val AUTO_BPM_APPLY_CONFIDENCE: Float = 0.20f
+        /** When [bpmAutoFollowEnabled], apply auto BPM once confidence reaches this (tuned for live input). */
+        private const val AUTO_BPM_APPLY_CONFIDENCE: Float = 0.07f
 
         /** Max delay line length (covers e.g. 4 beats @ 40 BPM ≈ 6 s). */
         private const val DELAY_MAX_SECONDS: Int = 6
@@ -266,14 +298,37 @@ class AndroidAudioEngineController(
         /** Stability margin under Nyquist for cutoff calculations at the top end. */
         private const val FILTER_MAX_NYQUIST_RATIO: Float = 0.82f
 
-        /** Parallel dry mix into master pitch shifter output (reduces phase-vocoder mush). */
-        private const val MAIN_PITCH_DRY_BLEND: Float = 0.28f
+        /** Master pitch ratio slew ~63% settle time (seconds). */
+        private const val MAIN_PITCH_SLEW_TAU_SEC: Float = 0.034f
+
+        /** Very slow wow when master pitch is active (Hz). */
+        private const val MAIN_PITCH_WOW_HZ: Double = 0.38
+
+        /** Subtle pitch wander vs unity (scaled by how much shift is applied). */
+        private const val MAIN_PITCH_WOW_DEPTH: Float = 0.0032f
     }
 
     private fun mainPitchMaxAbsPercent(): Float = when (mainPitchRangeMode) {
         MainPitchRangeMode.PERCENT_12 -> 12f
         MainPitchRangeMode.PERCENT_24 -> 24f
         MainPitchRangeMode.PERCENT_50 -> 50f
+    }
+
+    /** Slew + tiny wow toward [mainPitchPercent]; used for both monitor and FX-bus shifters. */
+    private fun effectiveMasterPitchRatio(frameCount: Int, sampleRateHz: Int): Float {
+        val target = PitchKnobMath.toPitchShiftRatio(mainPitchPercent)
+        val sr = sampleRateHz.toFloat().coerceAtLeast(1f)
+        val dt = frameCount.toFloat() / sr
+        val aSlew = if (dt > 0f) (1f - exp(-dt / MAIN_PITCH_SLEW_TAU_SEC)).coerceIn(0f, 1f) else 0f
+        mainPitchRatioSlewed += aSlew * (target - mainPitchRatioSlewed)
+
+        val dev = abs(target - 1f)
+        val wowAmt = (dev / 0.035f).coerceIn(0f, 1f)
+        mainPitchWowPhase += 2.0 * PI * MAIN_PITCH_WOW_HZ * (frameCount.toDouble() / sampleRateHz.toDouble().coerceAtLeast(1.0))
+        while (mainPitchWowPhase >= 2.0 * PI) mainPitchWowPhase -= 2.0 * PI
+        while (mainPitchWowPhase < 0.0) mainPitchWowPhase += 2.0 * PI
+        val wow = 1f + (MAIN_PITCH_WOW_DEPTH * wowAmt * sin(mainPitchWowPhase)).toFloat()
+        return (mainPitchRatioSlewed * wow).coerceIn(0.5f, 1.5f)
     }
 
     enum class ScratchFeelPreset {
@@ -331,8 +386,7 @@ class AndroidAudioEngineController(
 
         currentConfig = config
         fxBusScratch = FloatArray(config.framesPerBurst * config.outputChannels)
-        fxPostPitchScratch = FloatArray(config.framesPerBurst * config.outputChannels)
-        dryPrePitchScratch = FloatArray(config.framesPerBurst * config.outputChannels)
+        monitorBaseScratch = FloatArray(config.framesPerBurst * config.outputChannels)
         monoPitchScratch = FloatArray(config.framesPerBurst)
         monoPitchOutScratch = FloatArray(config.framesPerBurst)
         fxDelay = InterleavedFeedbackDelay(
@@ -344,6 +398,8 @@ class AndroidAudioEngineController(
             capFrames = FLANGER_CAP_FRAMES
         ).also { it.reset() }
         scratchRing = ScratchRingBuffer(ScratchRingBuffer.DEFAULT_CAP_FRAMES).also { it.reset() }
+        fxReverb = HallReverbStereo(config.sampleRateHz).also { it.reset() }
+        fxTapeWow = TapeWowFlutterStereo(config.sampleRateHz).also { it.reset() }
         scratchLagFrames = 0f
         scratchRateCurrent = 0f
         scratchRateTarget = 0f
@@ -352,8 +408,10 @@ class AndroidAudioEngineController(
         scratchTouchActive = false
         monitorEq.reset()
         eqParamsDirty = true
-        mainPitchShifterL.reset()
-        mainPitchShifterR.reset()
+        mainPitchShifterMonitor.reset()
+        mainPitchShifterFxBus.reset()
+        mainPitchRatioSlewed = PitchKnobMath.toPitchShiftRatio(mainPitchPercent)
+        mainPitchWowPhase = 0.0
         filterL.reset()
         filterR.reset()
         filterEnv = 0f
@@ -365,6 +423,7 @@ class AndroidAudioEngineController(
         loopPlayer.setSamplePitchPercent(samplePitchPercent)
         autoBpmEstimator.configure(config.sampleRateHz)
         autoBpmEstimator.reset()
+        autoBpmEma = internalBpm.currentBpm()
 
         engine.start(config) { input, output, frameCount ->
             val qRec = recorder
@@ -411,27 +470,29 @@ class AndroidAudioEngineController(
                 if (bpmAutoFollowEnabled) {
                     val r = autoBpmEstimator.reading()
                     if (r.confidence >= AUTO_BPM_APPLY_CONFIDENCE) {
-                        internalBpm.updateBpm(r.bpm)
+                        val a = (0.06 + r.confidence * 0.38).coerceIn(0.06, 0.55)
+                        val next = autoBpmEma + a * (r.bpm - autoBpmEma)
+                        autoBpmEma = next
+                        internalBpm.updateBpm(next)
                     }
                 }
             }
 
-            // Monitoring path: copy input to output with simple mono->stereo handling.
             val outChannels = config.outputChannels
+            val outSamples = frameCount * outChannels
+            val mainPitchRatio = effectiveMasterPitchRatio(frameCount, config.sampleRateHz)
+
             if (inChannels <= 0) {
-                // No input configured; emit silence.
-                val outSamples = frameCount * outChannels
                 for (i in 0 until outSamples) output[i] = 0f
             } else {
-                // Update filter envelope follower from input (AUTO mode uses it).
-                // Use mono input channel 0; lightweight attack/release smoothing.
+                // Dry monitor: input × gain into scratch, then master pitch (same as FX bus) into output.
                 var env = filterEnv
                 val attack = 0.02f
                 val release = 0.005f
                 for (f in 0 until frameCount) {
                     val inBase = f * inChannels
                     val outBase = f * outChannels
-                    val srcLeft = inBase // mono -> use left
+                    val srcLeft = inBase
                     val x = input[srcLeft]
                     val mag = abs(x)
                     val coeff = if (mag > env) attack else release
@@ -440,19 +501,33 @@ class AndroidAudioEngineController(
                     val monitorGain = if (sampleAudible) 0f else inputMonitorGain
                     for (oc in 0 until outChannels) {
                         val srcChannel = if (inChannels == 1) 0 else minOf(oc, inChannels - 1)
-                        output[outBase + oc] = input[srcLeft + srcChannel] * monitorGain
+                        monitorBaseScratch[outBase + oc] = input[inBase + srcChannel] * monitorGain
                     }
                 }
                 filterEnv = env
+                copyOrMasterPitchInterleaved(
+                    src = monitorBaseScratch,
+                    dst = output,
+                    frameCount = frameCount,
+                    outChannels = outChannels,
+                    ratio = mainPitchRatio,
+                    shifter = mainPitchShifterMonitor
+                )
             }
 
-            val outSamples = frameCount * outChannels
             when (samplerFxRoute) {
                 SamplerFxRouteIntent.THROUGH_EFFECTS_PATH -> {
-                    // E4: filter/delay/etc. on fxBusScratch; E3 main pitch (pitch-only) after sampler mix.
+                    // Sampler → master pitch (before delay/flanger wet/dry) → scratch/delay/flanger → filter.
                     fxBusScratch.fill(0f, fromIndex = 0, toIndex = outSamples)
                     loopPlayer.mixInto(fxBusScratch, outChannels, frameCount)
                     loopPlayer.mixShotInto(fxBusScratch, outChannels, frameCount)
+                    pitchInterleavedInPlace(
+                        bus = fxBusScratch,
+                        frameCount = frameCount,
+                        outChannels = outChannels,
+                        ratio = mainPitchRatio,
+                        shifter = mainPitchShifterFxBus
+                    )
 
                     if (fxOrderMode == FxOrderMode.SCRATCH_THEN_FX) {
                         applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
@@ -464,48 +539,28 @@ class AndroidAudioEngineController(
                         applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
                     }
 
-                    val ratio = PitchKnobMath.toPitchShiftRatio(mainPitchPercent)
-                    if (abs(ratio - 1f) < 1e-3f) {
-                        applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
-                        val g = mainMixNorm
-                        for (i in 0 until outSamples) {
-                            output[i] += fxBusScratch[i] * g
-                        }
-                    } else {
-                        for (i in 0 until outSamples) {
-                            dryPrePitchScratch[i] = fxBusScratch[i]
-                        }
-                        for (f in 0 until frameCount) {
-                            monoPitchScratch[f] = fxBusScratch[f * outChannels]
-                        }
-                        mainPitchShifterL.processReplace(
-                            monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio
-                        )
-                        for (f in 0 until frameCount) {
-                            fxPostPitchScratch[f * outChannels] = monoPitchOutScratch[f]
-                        }
-                        if (outChannels >= 2) {
-                            for (f in 0 until frameCount) {
-                                monoPitchScratch[f] = fxBusScratch[f * outChannels + 1]
-                            }
-                            mainPitchShifterR.processReplace(
-                                monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio
-                            )
-                            for (f in 0 until frameCount) {
-                                fxPostPitchScratch[f * outChannels + 1] = monoPitchOutScratch[f]
-                            }
-                        }
-                        val wet = 1f - MAIN_PITCH_DRY_BLEND
-                        val dryAmt = MAIN_PITCH_DRY_BLEND
-                        for (i in 0 until outSamples) {
-                            fxPostPitchScratch[i] =
-                                fxPostPitchScratch[i] * wet + dryPrePitchScratch[i] * dryAmt
-                        }
-                        applyFilterToInterleaved(fxPostPitchScratch, frameCount, outChannels, config.sampleRateHz)
-                        val g = mainMixNorm
-                        for (i in 0 until outSamples) {
-                            output[i] += fxPostPitchScratch[i] * g
-                        }
+                    applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
+                    fxTapeWow?.processReplaceInterleaved(
+                        fxBusScratch,
+                        frameCount,
+                        outChannels,
+                        tapeWowEnabled,
+                        tapeWowDepthNorm,
+                        tapeFlutterDepthNorm,
+                        tapeMixNorm
+                    )
+                    fxReverb?.processReplaceInterleaved(
+                        fxBusScratch,
+                        frameCount,
+                        outChannels,
+                        reverbEnabled,
+                        reverbCathedral,
+                        reverbDecayNorm,
+                        reverbMixNorm
+                    )
+                    val g = mainMixNorm
+                    for (i in 0 until outSamples) {
+                        output[i] += fxBusScratch[i] * g
                     }
                 }
                 SamplerFxRouteIntent.DIRECT_TO_MONITOR_MIX -> {
@@ -525,17 +580,15 @@ class AndroidAudioEngineController(
                         eqLowDb,
                         eqMidDb,
                         eqHighDb,
-                        eqKillLowHeld,
-                        eqKillMidHeld,
-                        eqKillHighHeld,
-                        eqKillAllHeld
                     )
                     eqParamsDirty = false
                 }
                 monitorEq.processInterleavedStereo(output, frameCount)
             }
             for (i in 0 until outSamples) {
-                output[i] = output[i].coerceIn(-1f, 1f)
+                var s = output[i]
+                if (!s.isFinite()) s = 0f
+                output[i] = s.coerceIn(-1f, 1f)
             }
         }
     }
@@ -547,6 +600,8 @@ class AndroidAudioEngineController(
         fxDelay = null
         fxFlanger?.reset()
         fxFlanger = null
+        fxReverb = null
+        fxTapeWow = null
         scratchRing?.reset()
         scratchRing = null
         scratchLagFrames = 0f
@@ -787,51 +842,75 @@ class AndroidAudioEngineController(
 
     fun flangerWetNorm(): Float = flangerWetNorm
 
-    /** E4-S6: low shelf gain in dB (expanded for performance cuts). */
+    fun setReverbEnabled(enabled: Boolean) {
+        reverbEnabled = enabled
+    }
+
+    fun reverbEnabled(): Boolean = reverbEnabled
+
+    fun setReverbCathedral(cathedral: Boolean) {
+        reverbCathedral = cathedral
+    }
+
+    fun reverbCathedral(): Boolean = reverbCathedral
+
+    fun setReverbDecayNorm(norm: Float) {
+        reverbDecayNorm = norm.coerceIn(0f, 1f)
+    }
+
+    fun reverbDecayNorm(): Float = reverbDecayNorm
+
+    fun setReverbMixNorm(norm: Float) {
+        reverbMixNorm = norm.coerceIn(0f, 1f)
+    }
+
+    fun reverbMixNorm(): Float = reverbMixNorm
+
+    fun setTapeWowEnabled(enabled: Boolean) {
+        tapeWowEnabled = enabled
+    }
+
+    fun tapeWowEnabled(): Boolean = tapeWowEnabled
+
+    fun setTapeWowDepthNorm(norm: Float) {
+        tapeWowDepthNorm = norm.coerceIn(0f, 1f)
+    }
+
+    fun tapeWowDepthNorm(): Float = tapeWowDepthNorm
+
+    fun setTapeFlutterDepthNorm(norm: Float) {
+        tapeFlutterDepthNorm = norm.coerceIn(0f, 1f)
+    }
+
+    fun tapeFlutterDepthNorm(): Float = tapeFlutterDepthNorm
+
+    fun setTapeMixNorm(norm: Float) {
+        tapeMixNorm = norm.coerceIn(0f, 1f)
+    }
+
+    fun tapeMixNorm(): Float = tapeMixNorm
+
+    /** E4-S6: EQ band gain in dB (UI fader: [[ThreeBandStereoEq.MIN_DB], [ThreeBandStereoEq.BOOST_MAX_DB]]). */
     fun setEqLowDb(db: Float) {
-        eqLowDb = db.coerceIn(-36f, 36f)
+        eqLowDb = db.coerceIn(ThreeBandStereoEq.MIN_DB, ThreeBandStereoEq.BOOST_MAX_DB)
         eqParamsDirty = true
     }
 
     fun eqLowDb(): Float = eqLowDb
 
     fun setEqMidDb(db: Float) {
-        eqMidDb = db.coerceIn(-36f, 36f)
+        eqMidDb = db.coerceIn(ThreeBandStereoEq.KILL_DB, ThreeBandStereoEq.BOOST_MAX_DB)
         eqParamsDirty = true
     }
 
     fun eqMidDb(): Float = eqMidDb
 
     fun setEqHighDb(db: Float) {
-        eqHighDb = db.coerceIn(-36f, 36f)
+        eqHighDb = db.coerceIn(ThreeBandStereoEq.MIN_DB, ThreeBandStereoEq.BOOST_MAX_DB)
         eqParamsDirty = true
     }
 
     fun eqHighDb(): Float = eqHighDb
-
-    fun setEqKillLowHeld(held: Boolean) {
-        if (eqKillLowHeld == held) return
-        eqKillLowHeld = held
-        eqParamsDirty = true
-    }
-
-    fun setEqKillMidHeld(held: Boolean) {
-        if (eqKillMidHeld == held) return
-        eqKillMidHeld = held
-        eqParamsDirty = true
-    }
-
-    fun setEqKillHighHeld(held: Boolean) {
-        if (eqKillHighHeld == held) return
-        eqKillHighHeld = held
-        eqParamsDirty = true
-    }
-
-    fun setEqKillAllHeld(held: Boolean) {
-        if (eqKillAllHeld == held) return
-        eqKillAllHeld = held
-        eqParamsDirty = true
-    }
 
     /**
      * E4-S5: finger started/ended on scratch surface. When active, FX-bus samples after delay are read
@@ -911,6 +990,83 @@ class AndroidAudioEngineController(
                 wet = flangerWetNorm,
                 bypass = flangerBypass
             )
+        }
+    }
+
+    private fun mainPitchBypass(ratio: Float): Boolean = abs(ratio - 1f) < 1e-3f
+
+    /**
+     * [src] interleaved → optional PV by mono sum → [dst]. Used for input/monitor path after gain.
+     */
+    private fun copyOrMasterPitchInterleaved(
+        src: FloatArray,
+        dst: FloatArray,
+        frameCount: Int,
+        outChannels: Int,
+        ratio: Float,
+        shifter: StreamingCheapPitchShifterMono
+    ) {
+        val outSamples = frameCount * outChannels
+        if (mainPitchBypass(ratio)) {
+            for (i in 0 until outSamples) dst[i] = src[i]
+            return
+        }
+        if (outChannels >= 2) {
+            for (f in 0 until frameCount) {
+                val l = src[f * outChannels]
+                val r = src[f * outChannels + 1]
+                monoPitchScratch[f] = 0.5f * (l + r)
+            }
+        } else {
+            for (f in 0 until frameCount) {
+                monoPitchScratch[f] = src[f * outChannels]
+            }
+        }
+        shifter.processReplace(monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio)
+        if (outChannels >= 2) {
+            for (f in 0 until frameCount) {
+                val v = monoPitchOutScratch[f]
+                dst[f * outChannels] = v
+                dst[f * outChannels + 1] = v
+            }
+        } else {
+            for (f in 0 until frameCount) {
+                dst[f] = monoPitchOutScratch[f]
+            }
+        }
+    }
+
+    /** In-place interleaved PV (mono sum → expand) for the FX bus. */
+    private fun pitchInterleavedInPlace(
+        bus: FloatArray,
+        frameCount: Int,
+        outChannels: Int,
+        ratio: Float,
+        shifter: StreamingCheapPitchShifterMono
+    ) {
+        if (mainPitchBypass(ratio)) return
+        if (outChannels >= 2) {
+            for (f in 0 until frameCount) {
+                val l = bus[f * outChannels]
+                val r = bus[f * outChannels + 1]
+                monoPitchScratch[f] = 0.5f * (l + r)
+            }
+        } else {
+            for (f in 0 until frameCount) {
+                monoPitchScratch[f] = bus[f * outChannels]
+            }
+        }
+        shifter.processReplace(monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio)
+        if (outChannels >= 2) {
+            for (f in 0 until frameCount) {
+                val v = monoPitchOutScratch[f]
+                bus[f * outChannels] = v
+                bus[f * outChannels + 1] = v
+            }
+        } else {
+            for (f in 0 until frameCount) {
+                bus[f] = monoPitchOutScratch[f]
+            }
         }
     }
 
@@ -1063,6 +1219,9 @@ class AndroidAudioEngineController(
 
     fun setBpmAutoFollowEnabled(enabled: Boolean) {
         bpmAutoFollowEnabled = enabled
+        if (enabled) {
+            autoBpmEma = internalBpm.currentBpm()
+        }
     }
 
     fun isBpmAutoFollowEnabled(): Boolean = bpmAutoFollowEnabled
@@ -1076,12 +1235,14 @@ class AndroidAudioEngineController(
     fun tapTempoNow(elapsedRealtimeSeconds: Double): Double? {
         val est = tapBpmEstimator.tap(elapsedRealtimeSeconds) ?: return null
         internalBpm.updateBpm(est)
+        autoBpmEma = est
         return est
     }
 
     fun resetBpmToDefault() {
         tapBpmEstimator.reset()
         internalBpm.updateBpm(120.0)
+        autoBpmEma = 120.0
     }
 
     /**

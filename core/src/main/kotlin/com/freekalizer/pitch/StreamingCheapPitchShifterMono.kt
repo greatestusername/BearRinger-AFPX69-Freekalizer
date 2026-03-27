@@ -12,7 +12,7 @@ import kotlin.math.sin
  * frequency estimate), overlap-add synthesis. Better behaved than raw spectrum bin-stretching on
  * drum/loop material. **No allocations** in [processReplace].
  *
- * Defaults tuned for 48 kHz paths: 512 / 128 ≈ 10.7 ms frame, 2.7 ms hop.
+ * Default frame/hop are 1024/256; the tablet uses 4096/256 for master pitch (high overlap).
  */
 class StreamingCheapPitchShifterMono(
     private val fftSize: Int = 1024,
@@ -35,6 +35,8 @@ class StreamingCheapPitchShifterMono(
 
     private val lastPhaseIn = FloatArray(nh + 1)
     private val sumPhaseOut = FloatArray(nh + 1)
+    /** Eased magnitude per bin — tames vertical “zipper” / metallic chatter between frames. */
+    private val magSmoothed = FloatArray(nh + 1)
 
     private var pvFrameIndex: Int = 0
 
@@ -74,6 +76,7 @@ class StreamingCheapPitchShifterMono(
         fftTimeIm.fill(0f)
         lastPhaseIn.fill(0f)
         sumPhaseOut.fill(0f)
+        magSmoothed.fill(0f)
         pvFrameIndex = 0
         outAccum.fill(0f)
         pending.fill(0f)
@@ -136,6 +139,11 @@ class StreamingCheapPitchShifterMono(
         }
     }
 
+    private companion object {
+        /** Higher = smoother spectrum, softer transients (more “analog,” less zipper). */
+        private const val STFT_MAG_SMOOTH: Float = 0.88f
+    }
+
     private fun principalArg(phase: Float): Float {
         var p = phase
         while (p > PI.toFloat()) p -= twopi
@@ -157,11 +165,12 @@ class StreamingCheapPitchShifterMono(
             for (k in 1 until nh) {
                 val reK = fftTimeRe[k]
                 val imK = fftTimeIm[k]
-                val mag = hypot(reK, imK)
+                val magRaw = hypot(reK, imK)
                 val phase = atan2(imK, reK)
                 if (first) {
                     lastPhaseIn[k] = phase
                     sumPhaseOut[k] = phase
+                    magSmoothed[k] = magRaw
                 } else {
                     val expected = twopi * k * hopf / nf
                     var delta = phase - lastPhaseIn[k]
@@ -169,7 +178,9 @@ class StreamingCheapPitchShifterMono(
                     delta = principalArg(delta - expected)
                     val omegaInst = twopi * k / nf + delta / hopf
                     sumPhaseOut[k] += omegaInst * pitchRatio * hopf
+                    magSmoothed[k] = magSmoothed[k] * STFT_MAG_SMOOTH + magRaw * (1f - STFT_MAG_SMOOTH)
                 }
+                val mag = magSmoothed[k]
                 fftTimeRe[k] = mag * cos(sumPhaseOut[k])
                 fftTimeIm[k] = mag * sin(sumPhaseOut[k])
             }
