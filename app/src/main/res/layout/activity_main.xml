@@ -887,11 +887,25 @@
             android:textAllCaps="false"
             android:textColor="@color/text_primary" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/submenu_scroll_hint"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
+            android:fadeScrollbars="false"
             android:fillViewport="true"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:scrollbarSize="6dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:scrollbarThumbVertical="@drawable/scrollbar_thumb_submenu"
+            android:scrollbarTrackVertical="@drawable/scrollbar_track_submenu"
             android:scrollbars="vertical">
 
             <LinearLayout

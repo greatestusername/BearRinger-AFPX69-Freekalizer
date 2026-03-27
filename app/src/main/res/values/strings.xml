@@ -99,6 +99,7 @@
     <string name="menu_library">MENU LIBRARY</string>
     <string name="menu_system">MENU SYSTEM</string>
     <string name="menu_close">Close submenu</string>
+    <string name="submenu_scroll_hint">Scroll the panel (right edge) to reach all settings.</string>
     <string name="menu_system_hint">System panel: reserve for diagnostics and non-performance controls.</string>
 </resources>
 

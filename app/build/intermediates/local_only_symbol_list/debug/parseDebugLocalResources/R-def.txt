@@ -14,6 +14,8 @@ drawable bg_button_zone
 drawable bg_scratch_volume_gradient
 drawable bg_zone_panel
 drawable ic_launcher
+drawable scrollbar_thumb_submenu
+drawable scrollbar_track_submenu
 id bar_spinner
 id board_root
 id bpm_auto_follow
@@ -226,6 +228,7 @@ string scratch_y_axis
 string shot_hold
 string start_monitoring
 string stop_monitoring
+string submenu_scroll_hint
 string tape_wow_off
 string tape_wow_on
 string zone_eq

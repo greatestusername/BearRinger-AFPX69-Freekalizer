@@ -236,7 +236,7 @@ class AndroidAudioEngineController(
     private var scratchFeelPreset: ScratchFeelPreset = ScratchFeelPreset.CLASSIC
 
     @Volatile
-    private var fxOrderMode: FxOrderMode = FxOrderMode.SCRATCH_THEN_FX
+    private var fxOrderMode: FxOrderMode = FxOrderMode.SCRATCH_FX_FILTER_TAPE_REVERB
 
     /** When true, flanger is bypassed (dry only; LFO/ring still advance). */
     @Volatile
@@ -343,9 +343,18 @@ class AndroidAudioEngineController(
         PERCENT_50
     }
 
-    enum class FxOrderMode {
-        SCRATCH_THEN_FX,
-        FX_THEN_SCRATCH
+    /**
+     * FX-bus ordering after sampler + main pitch: scratch vs delay/flanger, then multiband filter
+     * (same placement as today), then **Tape/Wow-Flutter** and **Hall reverb** in either order.
+     */
+    enum class FxOrderMode(
+        val scratchBeforeDelayFlanger: Boolean,
+        val tapeWowFlutterBeforeReverb: Boolean,
+    ) {
+        SCRATCH_FX_FILTER_TAPE_REVERB(true, true),
+        SCRATCH_FX_FILTER_REVERB_TAPE(true, false),
+        FX_SCRATCH_FILTER_TAPE_REVERB(false, true),
+        FX_SCRATCH_FILTER_REVERB_TAPE(false, false),
     }
 
     private fun scratchRateRangeForPreset(): Float = when (scratchFeelPreset) {
@@ -529,7 +538,7 @@ class AndroidAudioEngineController(
                         shifter = mainPitchShifterFxBus
                     )
 
-                    if (fxOrderMode == FxOrderMode.SCRATCH_THEN_FX) {
+                    if (fxOrderMode.scratchBeforeDelayFlanger) {
                         applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
                         applyDelayToFxBus(frameCount, config.sampleRateHz)
                         applyFlangerToFxBus(frameCount, config.sampleRateHz)
@@ -540,24 +549,13 @@ class AndroidAudioEngineController(
                     }
 
                     applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
-                    fxTapeWow?.processReplaceInterleaved(
-                        fxBusScratch,
-                        frameCount,
-                        outChannels,
-                        tapeWowEnabled,
-                        tapeWowDepthNorm,
-                        tapeFlutterDepthNorm,
-                        tapeMixNorm
-                    )
-                    fxReverb?.processReplaceInterleaved(
-                        fxBusScratch,
-                        frameCount,
-                        outChannels,
-                        reverbEnabled,
-                        reverbCathedral,
-                        reverbDecayNorm,
-                        reverbMixNorm
-                    )
+                    if (fxOrderMode.tapeWowFlutterBeforeReverb) {
+                        applyTapeWowToFxBus(frameCount, outChannels)
+                        applyReverbToFxBus(frameCount, outChannels)
+                    } else {
+                        applyReverbToFxBus(frameCount, outChannels)
+                        applyTapeWowToFxBus(frameCount, outChannels)
+                    }
                     val g = mainMixNorm
                     for (i in 0 until outSamples) {
                         output[i] += fxBusScratch[i] * g
@@ -951,6 +949,30 @@ class AndroidAudioEngineController(
     }
 
     fun fxOrderMode(): FxOrderMode = fxOrderMode
+
+    private fun applyTapeWowToFxBus(frameCount: Int, outChannels: Int) {
+        fxTapeWow?.processReplaceInterleaved(
+            fxBusScratch,
+            frameCount,
+            outChannels,
+            tapeWowEnabled,
+            tapeWowDepthNorm,
+            tapeFlutterDepthNorm,
+            tapeMixNorm
+        )
+    }
+
+    private fun applyReverbToFxBus(frameCount: Int, outChannels: Int) {
+        fxReverb?.processReplaceInterleaved(
+            fxBusScratch,
+            frameCount,
+            outChannels,
+            reverbEnabled,
+            reverbCathedral,
+            reverbDecayNorm,
+            reverbMixNorm
+        )
+    }
 
     private fun applyDelayToFxBus(frameCount: Int, sampleRateHz: Int) {
         fxDelay?.let { delay ->

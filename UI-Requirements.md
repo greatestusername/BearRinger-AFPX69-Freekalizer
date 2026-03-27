@@ -90,7 +90,7 @@ Sampler menu: free-rec cap picker, capture status text, progress details, revers
 
 
 
-FX menu: advanced delay/flanger/filter numeric controls (beats/depth/feedback/wet/manual params), reverb/tape, scratch-feel preset, and **FX processing order**; panel is vertically scrollable inside the modal when content exceeds viewport height.
+FX menu: advanced delay/flanger/filter numeric controls (beats/depth/feedback/wet/manual params), reverb/tape, scratch-feel preset, and **FX processing order** (scratch vs delay/flanger, then filter, then **Tape/Wow vs Reverb** order); panel scrolls vertically when needed, with an always-visible scrollbar affordance and hint line under **Close**.
 
 
 

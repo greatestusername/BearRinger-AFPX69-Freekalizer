@@ -145,8 +145,10 @@ class MainActivity : AppCompatActivity() {
         "Cut / aggressive" to ScratchFeelPreset.CUT
     )
     private val fxOrderItems: List<Pair<String, FxOrderMode>> = listOf(
-        "Scratch -> Delay/Flanger -> Filter (end)" to FxOrderMode.SCRATCH_THEN_FX,
-        "Delay/Flanger -> Scratch -> Filter (end)" to FxOrderMode.FX_THEN_SCRATCH
+        "Scratch → Dly/Flg → Filter → Tape/Wow → Reverb" to FxOrderMode.SCRATCH_FX_FILTER_TAPE_REVERB,
+        "Scratch → Dly/Flg → Filter → Reverb → Tape/Wow" to FxOrderMode.SCRATCH_FX_FILTER_REVERB_TAPE,
+        "Dly/Flg → Scratch → Filter → Tape/Wow → Reverb" to FxOrderMode.FX_SCRATCH_FILTER_TAPE_REVERB,
+        "Dly/Flg → Scratch → Filter → Reverb → Tape/Wow" to FxOrderMode.FX_SCRATCH_FILTER_REVERB_TAPE,
     )
 
     private val mainPitchRangeItems: List<Pair<String, MainPitchRangeMode>> = listOf(
@@ -659,7 +661,7 @@ class MainActivity : AppCompatActivity() {
         binding.fxOrderSpinner.adapter = spinnerAdapter(fxOrderItems.map { it.first })
         binding.fxOrderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val mode = fxOrderItems.getOrNull(position)?.second ?: FxOrderMode.SCRATCH_THEN_FX
+                val mode = fxOrderItems.getOrNull(position)?.second ?: FxOrderMode.SCRATCH_FX_FILTER_TAPE_REVERB
                 engineController.setFxOrderMode(mode)
             }
 
