@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="accent_led_cyan">#FF00D4E8</color>
-    <color name="accent_led_dim">#FF007A88</color>
-    <color name="background_app">#FF0D0D0D</color>
-    <color name="border_zone">#FF6B6B6B</color>
-    <color name="led_green">#FF2BE06C</color>
-    <color name="led_off">#FF223338</color>
-    <color name="overload">#FFFF3B30</color>
-    <color name="surface_zone">#FF161616</color>
-    <color name="text_muted">#FF9A9A9A</color>
-    <color name="text_primary">#FFE8E8E8</color>
+    <color name="accent_led_cyan">#FF006064</color>
+    <color name="accent_led_dim">#FF00464A</color>
+    <color name="accent_meter_active">#FF0B5E8A</color>
+    <color name="background_app">#FFC9CCD0</color>
+    <color name="border_zone">#FF5E5E62</color>
+    <color name="led_auto_on">#FF156B2E</color>
+    <color name="led_green">#FF1A8C3A</color>
+    <color name="led_off">#FF6E7175</color>
+    <color name="overload">#FFC62828</color>
+    <color name="surface_zone">#FFBEBFC4</color>
+    <color name="text_muted">#FF4A4A4E</color>
+    <color name="text_primary">#FF0D0D0D</color>
     <string name="app_name">Freekalizer Tablet</string>
     <string name="bpm_auto_follow">Follow AUTO BPM (live input; tap still overrides)</string>
     <string name="bpm_default_120">BPM → 120</string>
@@ -120,11 +122,15 @@
         <item name="colorAccent">@color/accent_led_cyan</item>
     </style>
     <style name="Widget.Freekalizer.SectionTitle" parent="@android:style/Widget.TextView">
-        <item name="android:textColor">@color/accent_led_cyan</item>
+        <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.08</item>
         <item name="android:paddingTop">16dp</item>
         <item name="android:paddingBottom">8dp</item>
     </style>
+    <declare-styleable name="RotaryKnobView">
+        <attr format="integer" name="maxValue"/>
+        <attr format="integer" name="knobProgress"/>
+    </declare-styleable>
 </resources>

@@ -368,24 +368,16 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
 
-        binding.filterCutoffSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                engineController.setFilterCutoffNorm(progress / 1000f)
-            }
-
-            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
-            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
-        })
-        binding.filterResonanceSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                engineController.setFilterResonanceNorm(progress / 1000f)
-            }
-
-            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
-            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) = Unit
-        })
+        binding.filterCutoffSeek.doubleTapResetProgress = 550
+        binding.filterResonanceSeek.doubleTapResetProgress = 250
+        binding.filterCutoffSeek.setOnKnobChangeListener { progress, fromUser ->
+            if (!fromUser) return@setOnKnobChangeListener
+            engineController.setFilterCutoffNorm(progress / 1000f)
+        }
+        binding.filterResonanceSeek.setOnKnobChangeListener { progress, fromUser ->
+            if (!fromUser) return@setOnKnobChangeListener
+            engineController.setFilterResonanceNorm(progress / 1000f)
+        }
         binding.filterLfoDepthSeek.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
@@ -408,8 +400,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateFilterUi() {
         // Sync slider positions (best-effort; user movement will drive controller live).
-        binding.filterCutoffSeek.progress = (engineController.filterCutoffNorm() * 1000f).roundToInt().coerceIn(0, 1000)
-        binding.filterResonanceSeek.progress = (engineController.filterResonanceNorm() * 1000f).roundToInt().coerceIn(0, 1000)
+        binding.filterCutoffSeek.syncProgressFromEngine((engineController.filterCutoffNorm() * 1000f).roundToInt().coerceIn(0, 1000))
+        binding.filterResonanceSeek.syncProgressFromEngine((engineController.filterResonanceNorm() * 1000f).roundToInt().coerceIn(0, 1000))
         binding.filterLfoDepthSeek.progress = (engineController.filterLfoDepth() * 1000f).roundToInt().coerceIn(0, 1000)
         binding.filterAutoDepthSeek.progress = (engineController.filterAutoDepth() * 1000f).roundToInt().coerceIn(0, 1000)
         val lfoIdx = filterLfoRateItems.indexOfFirst { it.second == engineController.filterLfoPeriodBeats() }
@@ -417,15 +409,15 @@ class MainActivity : AppCompatActivity() {
 
         val selected = engineController.filterType()
         val mode = engineController.filterMode()
-        val cyan = ContextCompat.getColor(this, R.color.accent_led_cyan)
+        val hi = ContextCompat.getColor(this, R.color.text_primary)
         val muted = ContextCompat.getColor(this, R.color.text_muted)
-        binding.filterLpButton.setTextColor(if (selected == FilterType.LOW_PASS) cyan else muted)
-        binding.filterHpButton.setTextColor(if (selected == FilterType.HIGH_PASS) cyan else muted)
-        binding.filterBpButton.setTextColor(if (selected == FilterType.BAND_PASS) cyan else muted)
+        binding.filterLpButton.setTextColor(if (selected == FilterType.LOW_PASS) hi else muted)
+        binding.filterHpButton.setTextColor(if (selected == FilterType.HIGH_PASS) hi else muted)
+        binding.filterBpButton.setTextColor(if (selected == FilterType.BAND_PASS) hi else muted)
 
-        binding.filterModeManual.setTextColor(if (mode == FilterMode.MANUAL) cyan else muted)
-        binding.filterModeLfo.setTextColor(if (mode == FilterMode.LFO) cyan else muted)
-        binding.filterModeAuto.setTextColor(if (mode == FilterMode.AUTO) cyan else muted)
+        binding.filterModeManual.setTextColor(if (mode == FilterMode.MANUAL) hi else muted)
+        binding.filterModeLfo.setTextColor(if (mode == FilterMode.LFO) hi else muted)
+        binding.filterModeAuto.setTextColor(if (mode == FilterMode.AUTO) hi else muted)
     }
 
     private fun bindDelayControls() {
@@ -871,14 +863,6 @@ class MainActivity : AppCompatActivity() {
             engineController.setInputMonitorGain(0f)
             updateInputGainLabel(0f)
         }
-        installDoubleTapReset(binding.filterCutoffSeek) {
-            binding.filterCutoffSeek.progress = 550
-            engineController.setFilterCutoffNorm(0.55f)
-        }
-        installDoubleTapReset(binding.filterResonanceSeek) {
-            binding.filterResonanceSeek.progress = 250
-            engineController.setFilterResonanceNorm(0.25f)
-        }
         val eqNeutral = eqDbToProgress(0f)
         installDoubleTapReset(binding.eqLowSeek) {
             binding.eqLowSeek.progress = eqNeutral
@@ -1011,7 +995,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.bpmValue.text = bpm.toInt().toString()
         binding.bpmAutoIndicator.text = mode
-        val autoColor = if (autoOn) R.color.accent_led_cyan else R.color.overload
+        val autoColor = if (autoOn) R.color.led_auto_on else R.color.overload
         binding.bpmAutoIndicator.setTextColor(ContextCompat.getColor(this, autoColor))
         binding.bpmStatus.text = "auto ${auto.bpm.toInt()} | confidence $confPct% | $lockHint"
     }
@@ -1055,7 +1039,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateHoldInteractionUi() {
-        val active = ContextCompat.getColor(this, R.color.accent_led_cyan)
+        val active = ContextCompat.getColor(this, R.color.text_primary)
         val idle = ContextCompat.getColor(this, R.color.text_muted)
         binding.shotButton.setTextColor(if (shotHeld) active else idle)
         binding.eqLowKill.setTextColor(
@@ -1079,7 +1063,7 @@ class MainActivity : AppCompatActivity() {
         val color = when {
             clipping -> R.color.overload
             peak >= 0.5f -> R.color.led_green
-            peak > 0.05f -> R.color.accent_led_cyan
+            peak > 0.05f -> R.color.accent_meter_active
             else -> R.color.led_off
         }
         view.setBackgroundColor(ContextCompat.getColor(this, color))

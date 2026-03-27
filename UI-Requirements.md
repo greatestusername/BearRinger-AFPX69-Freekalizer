@@ -134,7 +134,7 @@ Add reusable hardware widgets:
 
 
 
-KnobView (or styled circular ImageButton + indicator ring) for pitch/dry-wet/filter knobs.
+**Filter board:** `RotaryKnobView` (custom view) for filter **cutoff** (larger) and **resonance** (smaller); maps the same normalized 0–1000 range as legacy sliders. **Drag vertically** (up = increase, down = decrease); hash / pointer **min** at **7 o’clock**, **max** at **5 o’clock**, sweeping **clockwise** past **10**, **12**, **3** (300° arc). **Radial ticks** (major/minor) share the same angles; only the **active sweep** from **min** to the current value is **drawn** (no full idle tick ring), so at **min** there are no ticks and at **max** the full arc shows ticks (same path as the hash mark). Double-tap resets to default. **Board buttons** use `bg_button_zone` (layered **chrome/silver** gradient + gloss). Additional pitch / dry-wet knobs may reuse this widget in later layout passes.
 
 
 

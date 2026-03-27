@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -558,8 +559,8 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.9"
-                android:gravity="center"
+                android:layout_weight="1.05"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
                 <TextView
@@ -567,18 +568,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/fx_filter_cutoff"
-                    android:textColor="@color/accent_led_cyan"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <SeekBar
+                <com.freekalizer.tablet.ui.RotaryKnobView
                     android:id="@+id/filter_cutoff_seek"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="1000"
-                    android:minHeight="88dp"
-                    android:progress="550"
-                    android:progressTint="@color/accent_led_cyan" />
+                    android:layout_width="152dp"
+                    android:layout_height="152dp"
+                    android:layout_marginTop="4dp"
+                    app:knobProgress="550"
+                    app:maxValue="1000" />
 
                 <ToggleButton
                     android:id="@+id/delay_feed_toggle"
@@ -649,8 +649,8 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.9"
-                android:gravity="center"
+                android:layout_weight="0.78"
+                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
                 <TextView
@@ -658,18 +658,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/fx_filter_resonance"
-                    android:textColor="@color/accent_led_cyan"
+                    android:textColor="@color/text_primary"
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-                <SeekBar
+                <com.freekalizer.tablet.ui.RotaryKnobView
                     android:id="@+id/filter_resonance_seek"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:max="1000"
-                    android:minHeight="88dp"
-                    android:progress="250"
-                    android:progressTint="@color/accent_led_cyan" />
+                    android:layout_width="108dp"
+                    android:layout_height="108dp"
+                    android:layout_marginTop="4dp"
+                    app:knobProgress="250"
+                    app:maxValue="1000" />
 
                 <ToggleButton
                     android:id="@+id/flanger_bypass_toggle"

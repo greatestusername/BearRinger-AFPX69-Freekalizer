@@ -51,7 +51,7 @@ Purpose: define a hardware-faithful tablet UI blueprint derived from `Behringer-
 - Display abbreviations for temporary overlays should follow manual-style tokens where applicable: `DLy`, `FLg`, `FLt`, `PIt`, `SCr`, `SEn`.
 
 ### Tablet UI Zone Blueprint (Portrait mode always)
-Silver and Black colorscheme (rgb leds) 
+Silver and black color scheme (RGB-style LEDs for state). Implementation: light silver panel fills (`colors.xml` / zone drawables), near-black primary labels, green/red/blue-tinted meter and activity hints as appropriate. 
 
 - Top zone row: Input, BPM, and clip/status indicators, MAIN/MASTER PITCH KNOB
 - 2nd Top row: sampler transport, loop length selection, and sampler route/pitch controls.
@@ -521,6 +521,10 @@ Defer:
 - `2026-03-27` - Performance control polish pass: reduced master-pitch artifacts by moving to a larger STFT shifter window with overlap normalization, remapped scratch pad to explicit axes (`Y` playback position, `X` volume) with on-pad axis labels and gradient cue, switched EQ kill buttons to stable tap-to-cut behavior by snapping bands to the fader minimum, widened EQ fader span toward live-mix needs (see current `ThreeBandStereoEq.MIN_DB` / `BOOST_MAX_DB`), lowered AUTO BPM follow confidence threshold for easier lock-in, added double-tap reset-to-default across primary sliders, and set delay feedback default to `60%`; verification pending local device pass.
 - `2026-03-27` - FX routing order update: scratch is now placed before delay/flanger by default so scratch gestures are processed through downstream FX; filter stays after the scratch/delay/flanger block, and `MENU FX` **FX processing order** lists four chains: scratch-first vs Dly/Flg-first **×** Tape/Wow-Flutter before or after Hall reverb. Submenu body shows a persistent vertical scrollbar track + thumb and a short “scroll the panel” hint.
 - `2026-03-27` - EQ fader range set to **−50 .. +24 dB** (`ThreeBandStereoEq.MIN_DB`); kill buttons still snap bands to the fader minimum. **MENU FX** submenu body wrapped in a weighted `ScrollView` so long panels (filter/delay/flanger/reverb/tape/scratch preset/**FX processing order**) are not clipped on tablet portrait.
+- `2026-03-27` - **E7 visual pass (hardware palette + filter knobs):** main performance theme shifted to an early-2000s Behringer-style **silver chassis** with **black / dark-gray typography**; filter **cutoff** and **resonance** on the main board are custom **rotary knobs** (cutoff larger than resonance, same 0–1000 normalized mapping as prior sliders, double-tap resets to engine defaults); meter/held-state accents retuned for contrast on light metal.
+- `2026-03-27` - Filter knob UX fix: **vertical drag** (up/down) replaces angular scrubbing; scale **min** **7 o’clock**, **max** **5 o’clock**, **300°** CW past 10→12→3; tick **lit** sweep uses integer index from min to match pointer path; ticks drawn above cap, before hash.
+- `2026-03-27` - Knob radial ticks: arc uses `t=i/n` (same as pointer: **7→5** CW); active sweep = `internalProgress>0 && i*maxProgress <= internalProgress*n + maxProgress - 1`. **Only active ticks are drawn** (no dim full-ring), with stroke colors tuned for the silver bezel so **max** reads as a full tick arc and **min** shows **none**.
+- `2026-03-27` - UI polish: filter knobs show **radial tick marks** along the value arc with major/minor ticks and active sweep styling; main-board **buttons** use layered **chrome/silver** gradient + highlight (`bg_button_zone`).
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!

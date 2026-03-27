@@ -186,6 +186,7 @@ attr indeterminateProgressStyle
 attr initialActivityCount
 attr isLightTheme
 attr itemPadding
+attr knobProgress
 attr lStar
 attr lastBaselineToBottomHeight
 attr layout
@@ -208,6 +209,7 @@ attr listPreferredItemPaddingStart
 attr logo
 attr logoDescription
 attr maxButtonHeight
+attr maxValue
 attr measureWithLargestChild
 attr menu
 attr multiChoiceItemLayout
@@ -350,6 +352,7 @@ color accent_led_cyan
 color accent_led_dim
 color accent_material_dark
 color accent_material_light
+color accent_meter_active
 color androidx_core_ripple_material_light
 color androidx_core_secondary_text_default_material_light
 color background_app
@@ -378,6 +381,7 @@ color foreground_material_dark
 color foreground_material_light
 color highlighted_text_material_dark
 color highlighted_text_material_light
+color led_auto_on
 color led_green
 color led_off
 color material_blue_grey_800
@@ -1533,6 +1537,7 @@ styleable MenuView android_windowAnimationStyle android_itemTextAppearance andro
 styleable PopupWindow android_popupBackground android_popupAnimationStyle overlapAnchor
 styleable PopupWindowBackgroundState state_above_anchor
 styleable RecycleListView paddingBottomNoButtons paddingTopNoTitle
+styleable RotaryKnobView knobProgress maxValue
 styleable SearchView android_focusable android_maxWidth android_inputType android_imeOptions closeIcon commitIcon defaultQueryHint goIcon iconifiedByDefault layout queryBackground queryHint searchHintIcon searchIcon submitBackground suggestionRowLayout voiceIcon
 styleable Spinner android_entries android_popupBackground android_prompt android_dropDownWidth popupTheme
 styleable StateListDrawable android_dither android_visible android_variablePadding android_constantSize android_enterFadeDuration android_exitFadeDuration

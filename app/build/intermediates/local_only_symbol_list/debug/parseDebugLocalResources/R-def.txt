@@ -1,9 +1,13 @@
 R_DEF: Internal format may change without notice
 local
+attr? knobProgress
+attr? maxValue
 color accent_led_cyan
 color accent_led_dim
+color accent_meter_active
 color background_app
 color border_zone
+color led_auto_on
 color led_green
 color led_off
 color overload
@@ -237,3 +241,4 @@ string zone_sampler
 string zone_top_status
 style Theme.Freekalizer
 style Widget.Freekalizer.SectionTitle
+styleable RotaryKnobView maxValue knobProgress
