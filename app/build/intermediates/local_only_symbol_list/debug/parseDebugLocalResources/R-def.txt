@@ -140,6 +140,7 @@ layout spinner_dropdown_item_dark
 layout spinner_item_dark
 string app_name
 string bpm_auto_follow
+string bpm_auto_follow_help
 string bpm_default_120
 string bpm_tap
 string control_coming

@@ -32,6 +32,21 @@ object QuantizedLoopMath {
     }
 }
 
+/**
+ * BPM implied by loop **PCM length** when clip is known to span [bars] bars of **4/4**
+ * (same convention as [QuantizedLoopMath]). Inverse of [QuantizedLoopMath.targetFrames].
+ */
+object LoopBpmMath {
+    private const val BEATS_PER_BAR_4_4: Double = 4.0
+
+    fun bpmFromLoopFrames(sampleRateHz: Int, frameCount: Int, bars: QuantizedBars): Double {
+        require(sampleRateHz > 0) { "sampleRateHz must be > 0" }
+        require(frameCount > 0) { "frameCount must be > 0" }
+        val beats = bars.bars * BEATS_PER_BAR_4_4
+        return 60.0 * beats * sampleRateHz / frameCount
+    }
+}
+
 data class QuantizedRecordingResult(
     val pcm: FloatArray,
     val sampleRateHz: Int,

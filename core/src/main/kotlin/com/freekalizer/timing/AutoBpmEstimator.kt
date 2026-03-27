@@ -2,6 +2,7 @@ package com.freekalizer.timing
 
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -13,6 +14,9 @@ import kotlin.math.sqrt
  *
  * [confidence] (E5-S3) rises when several recent IOIs agree (low relative spread); it stays low on
  * ambiguous or non-pulsed material.
+ *
+ * Inter-onset intervals are **octave-folded** into the configured BPM range before taking the median tempo,
+ * so dense 16th onsets and quarter-note kicks vote for the same BPM (see [foldBpmFromIoiFrames]).
  */
 class AutoBpmEstimator(
     private val minBpm: Double = 40.0,
@@ -21,6 +25,8 @@ class AutoBpmEstimator(
     private var sampleRateHz: Int = 48_000
 
     private var prevInst: Float = 0f
+    /** First-order pre-emphasis state (mono downmix); boosts attacks on dense program material. */
+    private var emphasisPrevMono: Float = 0f
     private var fluxEnv: Float = 0f
     private var cooldownFrames: Int = 0
 
@@ -41,6 +47,7 @@ class AutoBpmEstimator(
 
     fun reset() {
         prevInst = 0f
+        emphasisPrevMono = 0f
         fluxEnv = 0f
         cooldownFrames = 0
         globalFrame = 0L
@@ -56,9 +63,15 @@ class AutoBpmEstimator(
     fun reading(): AutoBpmReading = AutoBpmReading(bpm = lastBpm, confidence = lastConfidence)
 
     /**
-     * Feed one interleaved input slice (mono uses channel 0). Safe with [channels] in 1..2.
+     * Feed one interleaved slice. Uses **mono downmix** when [channels] &gt; 1 so kick transients
+     * in either channel (common on stereo loops) drive the flux path, not only “left”.
      */
-    fun ingestInterleavedInput(input: FloatArray, channels: Int, frameCount: Int) {
+    fun ingestInterleavedInput(
+        input: FloatArray,
+        channels: Int,
+        frameCount: Int,
+        inputStartFrame: Int = 0
+    ) {
         if (channels <= 0 || frameCount <= 0) return
 
         val sr = sampleRateHz
@@ -66,7 +79,10 @@ class AutoBpmEstimator(
         val maxIoiFrames = (sr * (60.0 / minBpm) * 1.8).toInt()
 
         for (f in 0 until frameCount) {
-            val x = input[f * channels]
+            val xMono = monoDownmixFrame(input, (inputStartFrame + f) * channels, channels)
+            // Pre-emphasis: helps when RMS stays high but only hits have sharp attacks (compressed loops).
+            val x = xMono - PRE_EMPHASIS * emphasisPrevMono
+            emphasisPrevMono = xMono
             val inst = x * x
             val rawFlux = if (inst > prevInst) inst - prevInst else 0f
             prevInst = inst
@@ -76,8 +92,7 @@ class AutoBpmEstimator(
             if (cooldownFrames > 0) {
                 cooldownFrames--
             } else {
-                // Slightly lower ratio than 2.2 so real program material (not just impulses) crosses more often.
-                val thresh = max(fluxEnv * 1.45f, 1e-9f)
+                val thresh = max(fluxEnv * FLUX_THRESH_RATIO, 1e-9f)
                 if (rawFlux > thresh && rawFlux > 1e-9f) {
                     recordOnset(globalFrame)
                     cooldownFrames = minIoiFrames
@@ -87,6 +102,15 @@ class AutoBpmEstimator(
         }
 
         recomputeFromOnsets(minIoiFrames = minIoiFrames, maxIoiFrames = maxIoiFrames)
+    }
+
+    /** Mean of interleaved channels for this frame (real-time safe). */
+    private fun monoDownmixFrame(input: FloatArray, baseIndex: Int, channels: Int): Float {
+        var s = 0f
+        for (c in 0 until channels) {
+            s += input[baseIndex + c]
+        }
+        return s / channels
     }
 
     private fun recordOnset(frame: Long) {
@@ -117,27 +141,55 @@ class AutoBpmEstimator(
             return
         }
 
-        val slice = intervals.copyOf(k)
-        slice.sort()
-        val median = slice[k / 2]
-        if (median < 1.0) {
+        // Fold each IOI into [minBpm,maxBpm] by halving/doubling tempo so 16ths vs quarters agree (real drum loops).
+        val foldedBpm = DoubleArray(k)
+        var kf = 0
+        for (i in 0 until k) {
+            val fb = foldBpmFromIoiFrames(intervals[i]) ?: continue
+            foldedBpm[kf++] = fb
+        }
+        if (kf < 2) {
+            lastConfidence = 0f
+            return
+        }
+        val bpmSlice = foldedBpm.copyOf(kf)
+        bpmSlice.sort()
+        val medianBpm = bpmSlice[kf / 2]
+        if (!medianBpm.isFinite()) {
             lastConfidence = 0f
             return
         }
 
-        val bpm = (60.0 * sampleRateHz) / median
-        val clamped = bpm.coerceIn(minBpm, maxBpm)
-
         var spreadSum = 0.0
-        for (i in 0 until k) {
-            val bi = (60.0 * sampleRateHz) / slice[i].coerceAtLeast(1.0)
-            spreadSum += abs(bi - clamped)
+        for (i in 0 until kf) {
+            spreadSum += abs(bpmSlice[i] - medianBpm)
         }
-        val meanDev = spreadSum / k
+        val meanDev = spreadSum / kf
         val conf = (1.0 - (meanDev / 40.0).coerceIn(0.0, 1.0)).toFloat()
 
-        lastBpm = clamped
-        lastConfidence = (conf * sqrt((k / 8.0).coerceIn(0.0, 1.0))).toFloat().coerceIn(0f, 1f)
+        lastBpm = medianBpm.coerceIn(minBpm, maxBpm)
+        lastConfidence = (conf * sqrt((kf / 5.0).coerceIn(0.0, 1.0))).toFloat().coerceIn(0f, 1f)
+    }
+
+    /**
+     * Maps one inter-onset interval (frames) to a musically plausible BPM by octave folding.
+     * (Otherwise hat 16ths imply 480 BPM, clamp to 280, and confidence collapses on real loops.)
+     */
+    private fun foldBpmFromIoiFrames(dFrames: Double): Double? {
+        if (dFrames < 1.0) return null
+        var bpm = 60.0 * sampleRateHz / dFrames
+        if (!bpm.isFinite() || bpm <= 0.0) return null
+        var guard = 0
+        while (bpm > maxBpm && guard < 16) {
+            bpm /= 2.0
+            guard++
+        }
+        guard = 0
+        while (bpm < minBpm && guard < 16) {
+            bpm *= 2.0
+            guard++
+        }
+        return bpm.coerceIn(minBpm, maxBpm)
     }
 
     /** Onsets in chronological order (oldest first). */
@@ -150,14 +202,48 @@ class AutoBpmEstimator(
         }
     }
 
-    private companion object {
-        /** Faster tracking than 0.985 so the envelope can follow musical transients. */
+    companion object {
+        /** Faster tracking than 0.985 — envelope follows musical flux quickly enough to adapt threshold. */
         private const val FLUX_ENV_ALPHA: Float = 0.968f
+
+        /** ~0.94 standard first-order emphasis; lifts transients vs steady-state in loud loops. */
+        private const val PRE_EMPHASIS: Float = 0.94f
+
+        /** Adaptive threshold = fluxEnv × this (lower → more onsets on real drums/electronic). */
+        private const val FLUX_THRESH_RATIO: Float = 1.28f
+
+        /** Chunk size for offline full-buffer passes (UI thread; not used on audio callback hot path). */
+        private const val OFFLINE_INGEST_CHUNK_FRAMES: Int = 2048
+
+        /**
+         * Runs the same onset logic as live [ingestInterleavedInput] over an entire buffer (e.g. loaded WAV).
+         * Call from a non-audio thread for clips; very short or non-rhythmic material may return low [AutoBpmReading.confidence].
+         */
+        fun estimateFromInterleavedBuffer(
+            pcm: FloatArray,
+            channels: Int,
+            sampleRateHz: Int
+        ): AutoBpmReading {
+            require(channels > 0)
+            require(sampleRateHz > 0)
+            val frames = pcm.size / channels
+            if (frames <= 0) return AutoBpmReading(bpm = 120.0, confidence = 0f)
+            val est = AutoBpmEstimator()
+            est.configure(sampleRateHz)
+            est.reset()
+            var offset = 0
+            while (offset < frames) {
+                val n = min(OFFLINE_INGEST_CHUNK_FRAMES, frames - offset)
+                est.ingestInterleavedInput(pcm, channels, n, offset)
+                offset += n
+            }
+            return est.reading()
+        }
     }
 }
 
 data class AutoBpmReading(
     val bpm: Double,
-    /** 0 = no reliable lock; tablet follow uses ~0.07 once onset stream stabilizes. */
+    /** 0 = no reliable lock; follow applies in app when this exceeds ~0.035 once onsets stabilize. */
     val confidence: Float
 )

@@ -1040,6 +1040,7 @@ string abc_toolbar_collapse_description
 string androidx_startup
 string app_name
 string bpm_auto_follow
+string bpm_auto_follow_help
 string bpm_default_120
 string bpm_tap
 string call_notification_answer_action

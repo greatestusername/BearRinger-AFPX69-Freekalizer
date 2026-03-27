@@ -28,7 +28,8 @@ Portable Kotlin logic:
 - `com.freekalizer.timing`
   - Timing source abstraction (`Internal BPM` and future `Ableton Link`)
   - Registry for runtime source switching and fallback behavior
-  - `TapBpmEstimator` (manual tap tempo) and `AutoBpmEstimator` (live-input onset-based BPM + confidence, audio-thread-safe ingest)
+  - `TapBpmEstimator` (manual tap tempo) and `AutoBpmEstimator` (onset-based BPM + confidence, audio-thread-safe ingest; Android holds **two** instances for mic vs sampler when needed; bar-quantized clips use `LoopBpmMath` instead when playing)
+  - Bar-loop tempo: `LoopBpmMath.bpmFromLoopFrames` in `com.freekalizer.sampler` (inverse of quantized REC `QuantizedLoopMath.targetFrames`, 4/4) × Sample Pitch for exact BPM + varispeed under Follow AUTO
 - `com.freekalizer.effects`
   - Filter biquads, BPM→delay frames (`DelayBeatMath`), stereo feedback delay (`InterleavedFeedbackDelay`), BPM LFO rate (`FlangerBeatMath`), stereo flanger (`StereoFlanger`), EQ shelves/peaking (`ShelfPeakingBiquad`, `ThreeBandStereoEq`), scratch ring (`ScratchRingBuffer`) for E4
 - `com.freekalizer.ui`

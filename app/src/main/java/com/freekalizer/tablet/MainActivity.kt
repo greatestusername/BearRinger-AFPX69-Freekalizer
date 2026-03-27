@@ -986,6 +986,8 @@ class MainActivity : AppCompatActivity() {
         val bpm = engineController.currentBpm()
         val auto = engineController.autoBpmReading()
         val autoOn = engineController.isBpmAutoFollowEnabled()
+        val engineLive = engineController.isRunning()
+        val state = engineController.recordingState()
         val confPct = (auto.confidence * 100f).toInt().coerceIn(0, 100)
         val mode = if (autoOn) "AUTO" else "MANUAL"
         val lockHint = when {
@@ -993,11 +995,26 @@ class MainActivity : AppCompatActivity() {
             auto.confidence >= 0.12f -> "beat lock: weak"
             else -> "beat lock: none"
         }
+        val autoSrc =
+            if (state.isPlaybackLooping || state.isShotActive) "sample" else "input"
         binding.bpmValue.text = bpm.toInt().toString()
         binding.bpmAutoIndicator.text = mode
         val autoColor = if (autoOn) R.color.led_auto_on else R.color.overload
         binding.bpmAutoIndicator.setTextColor(ContextCompat.getColor(this, autoColor))
-        binding.bpmStatus.text = "auto ${auto.bpm.toInt()} | confidence $confPct% | $lockHint"
+        val followHint = when {
+            !autoOn -> "follow off — enable Follow AUTO BPM"
+            !engineLive -> "engine stopped — tap Start Monitoring"
+            auto.confidence < 0.035f ->
+                "listening… raise confidence (play loop, beat-heavy audio, or tap TAP BPM)"
+            else -> null
+        }
+        binding.bpmStatus.text = buildString {
+            append("auto ${auto.bpm.toInt()} ($autoSrc) | confidence $confPct% | $lockHint")
+            if (followHint != null) {
+                append(" | ")
+                append(followHint)
+            }
+        }
     }
 
     private fun updateMeterUi() {
@@ -1014,6 +1031,7 @@ class MainActivity : AppCompatActivity() {
         val bpmLockStrength = when {
             auto.confidence >= 0.30f -> 1.0f
             auto.confidence >= 0.12f -> 0.45f
+            auto.confidence >= 0.035f -> 0.25f
             else -> 0f
         }
         renderLed(
@@ -1353,6 +1371,13 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQ_MIC) {
             updatePermissionUi()
+            if (grantResults.isNotEmpty() &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                !engineController.isRunning()
+            ) {
+                engineController.setPreferredDevices(repo.selectedInputId, repo.selectedOutputId)
+                engineController.startMonitoring()
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import com.freekalizer.audio.AudioEngineConfig
 import com.freekalizer.audio.AudioEngineState
 import com.freekalizer.sampler.FrameCappedSamplerRecorder
 import com.freekalizer.sampler.FreeRecordMath
+import com.freekalizer.sampler.LoopBpmMath
 import com.freekalizer.sampler.QuantizedBars
 import com.freekalizer.sampler.QuantizedLoopMath
 import com.freekalizer.sampler.QuantizedSamplerRecorder
@@ -274,6 +275,14 @@ class AndroidAudioEngineController(
     private val tapBpmEstimator = TapBpmEstimator()
     private val autoBpmEstimator = AutoBpmEstimator()
 
+    /** Onset BPM from sampler output (loop/SHOT); live input uses [autoBpmEstimator]. */
+    private val autoBpmSampleEstimator = AutoBpmEstimator()
+
+    /**
+     * Audio callback only: last ingest source for AUTO BPM edge detection (clear stale onsets when switching).
+     */
+    private var lastBpmIngestSourceWasSample: Boolean = false
+
     @Volatile
     private var bpmAutoFollowEnabled: Boolean = false
 
@@ -284,8 +293,17 @@ class AndroidAudioEngineController(
     private var autoBpmEma: Double = 120.0
 
     companion object {
-        /** When [bpmAutoFollowEnabled], apply auto BPM once confidence reaches this (tuned for live input). */
-        private const val AUTO_BPM_APPLY_CONFIDENCE: Float = 0.07f
+        /**
+         * When [bpmAutoFollowEnabled], apply smoothed auto BPM at or above this confidence.
+         * Kept low so real program material (not only test impulses) can move the clock; see BPM status %.
+         */
+        private const val AUTO_BPM_APPLY_CONFIDENCE: Float = 0.035f
+
+        /**
+         * After loading a WAV/sample buffer on the UI thread, apply detected BPM when the offline
+         * onset analysis is confident enough; otherwise use [loadPresetSample]'s fallback BPM when provided.
+         */
+        private const val SAMPLE_LOAD_BPM_MIN_CONFIDENCE: Float = 0.08f
 
         /** Max delay line length (covers e.g. 4 beats @ 40 BPM ≈ 6 s). */
         private const val DELAY_MAX_SECONDS: Int = 6
@@ -432,6 +450,9 @@ class AndroidAudioEngineController(
         loopPlayer.setSamplePitchPercent(samplePitchPercent)
         autoBpmEstimator.configure(config.sampleRateHz)
         autoBpmEstimator.reset()
+        autoBpmSampleEstimator.configure(config.sampleRateHz)
+        autoBpmSampleEstimator.reset()
+        lastBpmIngestSourceWasSample = false
         autoBpmEma = internalBpm.currentBpm()
 
         engine.start(config) { input, output, frameCount ->
@@ -474,17 +495,13 @@ class AndroidAudioEngineController(
             }
 
             val inChannels = config.inputChannels
-            if (inChannels >= 1) {
+            val samplePlayingBpm = loopPlayer.isLooping() || loopPlayer.isShotActive()
+            if (samplePlayingBpm != lastBpmIngestSourceWasSample) {
+                if (samplePlayingBpm) autoBpmEstimator.reset() else autoBpmSampleEstimator.reset()
+                lastBpmIngestSourceWasSample = samplePlayingBpm
+            }
+            if (inChannels >= 1 && !samplePlayingBpm) {
                 autoBpmEstimator.ingestInterleavedInput(input, inChannels, frameCount)
-                if (bpmAutoFollowEnabled) {
-                    val r = autoBpmEstimator.reading()
-                    if (r.confidence >= AUTO_BPM_APPLY_CONFIDENCE) {
-                        val a = (0.06 + r.confidence * 0.38).coerceIn(0.06, 0.55)
-                        val next = autoBpmEma + a * (r.bpm - autoBpmEma)
-                        autoBpmEma = next
-                        internalBpm.updateBpm(next)
-                    }
-                }
             }
 
             val outChannels = config.outputChannels
@@ -524,51 +541,82 @@ class AndroidAudioEngineController(
                 )
             }
 
-            when (samplerFxRoute) {
-                SamplerFxRouteIntent.THROUGH_EFFECTS_PATH -> {
-                    // Sampler → master pitch (before delay/flanger wet/dry) → scratch/delay/flanger → filter.
-                    fxBusScratch.fill(0f, fromIndex = 0, toIndex = outSamples)
-                    loopPlayer.mixInto(fxBusScratch, outChannels, frameCount)
-                    loopPlayer.mixShotInto(fxBusScratch, outChannels, frameCount)
-                    pitchInterleavedInPlace(
-                        bus = fxBusScratch,
-                        frameCount = frameCount,
-                        outChannels = outChannels,
-                        ratio = mainPitchRatio,
-                        shifter = mainPitchShifterFxBus
-                    )
+            if (outSamples > 0) {
+                fxBusScratch.fill(0f, fromIndex = 0, toIndex = outSamples)
+                loopPlayer.mixInto(fxBusScratch, outChannels, frameCount)
+                loopPlayer.mixShotInto(fxBusScratch, outChannels, frameCount)
+                if (samplePlayingBpm) {
+                    autoBpmSampleEstimator.ingestInterleavedInput(fxBusScratch, outChannels, frameCount)
+                }
+                when (samplerFxRoute) {
+                    SamplerFxRouteIntent.THROUGH_EFFECTS_PATH -> {
+                        // Sampler → master pitch (before delay/flanger wet/dry) → scratch/delay/flanger → filter.
+                        pitchInterleavedInPlace(
+                            bus = fxBusScratch,
+                            frameCount = frameCount,
+                            outChannels = outChannels,
+                            ratio = mainPitchRatio,
+                            shifter = mainPitchShifterFxBus
+                        )
 
-                    if (fxOrderMode.scratchBeforeDelayFlanger) {
-                        applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
-                        applyDelayToFxBus(frameCount, config.sampleRateHz)
-                        applyFlangerToFxBus(frameCount, config.sampleRateHz)
-                    } else {
-                        applyDelayToFxBus(frameCount, config.sampleRateHz)
-                        applyFlangerToFxBus(frameCount, config.sampleRateHz)
-                        applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
-                    }
+                        if (fxOrderMode.scratchBeforeDelayFlanger) {
+                            applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
+                            applyDelayToFxBus(frameCount, config.sampleRateHz)
+                            applyFlangerToFxBus(frameCount, config.sampleRateHz)
+                        } else {
+                            applyDelayToFxBus(frameCount, config.sampleRateHz)
+                            applyFlangerToFxBus(frameCount, config.sampleRateHz)
+                            applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
+                        }
 
-                    applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
-                    if (fxOrderMode.tapeWowFlutterBeforeReverb) {
-                        applyTapeWowToFxBus(frameCount, outChannels)
-                        applyReverbToFxBus(frameCount, outChannels)
-                    } else {
-                        applyReverbToFxBus(frameCount, outChannels)
-                        applyTapeWowToFxBus(frameCount, outChannels)
+                        applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
+                        if (fxOrderMode.tapeWowFlutterBeforeReverb) {
+                            applyTapeWowToFxBus(frameCount, outChannels)
+                            applyReverbToFxBus(frameCount, outChannels)
+                        } else {
+                            applyReverbToFxBus(frameCount, outChannels)
+                            applyTapeWowToFxBus(frameCount, outChannels)
+                        }
+                        val g = mainMixNorm
+                        for (i in 0 until outSamples) {
+                            output[i] += fxBusScratch[i] * g
+                        }
                     }
-                    val g = mainMixNorm
-                    for (i in 0 until outSamples) {
-                        output[i] += fxBusScratch[i] * g
+                    SamplerFxRouteIntent.DIRECT_TO_MONITOR_MIX -> {
+                        val g = mainMixNorm
+                        for (i in 0 until outSamples) {
+                            output[i] += fxBusScratch[i] * g
+                        }
                     }
                 }
-                SamplerFxRouteIntent.DIRECT_TO_MONITOR_MIX -> {
-                    fxBusScratch.fill(0f, fromIndex = 0, toIndex = outSamples)
-                    loopPlayer.mixInto(fxBusScratch, outChannels, frameCount)
-                    loopPlayer.mixShotInto(fxBusScratch, outChannels, frameCount)
-                    val g = mainMixNorm
-                    for (i in 0 until outSamples) {
-                        output[i] += fxBusScratch[i] * g
+            }
+
+            if (bpmAutoFollowEnabled) {
+                val r = if (samplePlayingBpm) {
+                    val barBase = loopBpmAtUnityOrNull()
+                    if (barBase != null) {
+                        val m = PitchKnobMath.toPlaybackSpeedMultiplier(samplePitchPercent).toDouble()
+                        AutoBpmReading(
+                            bpm = (barBase * m).coerceIn(40.0, 280.0),
+                            confidence = 0.95f
+                        )
+                    } else {
+                        autoBpmSampleEstimator.reading()
                     }
+                } else if (inChannels >= 1) {
+                    autoBpmEstimator.reading()
+                } else {
+                    null
+                }
+                if (r != null && r.confidence >= AUTO_BPM_APPLY_CONFIDENCE) {
+                    val next = if (samplePlayingBpm && loopBpmAtUnityOrNull() != null) {
+                        r.bpm
+                    } else {
+                        val a = (0.08 + r.confidence * 0.50).coerceIn(0.08, 0.65)
+                        autoBpmEma + a * (r.bpm - autoBpmEma)
+                    }
+                    autoBpmEma = next
+                    internalBpm.updateBpm(next)
                 }
             }
             if (outChannels >= 2) {
@@ -594,6 +642,8 @@ class AndroidAudioEngineController(
     fun stopMonitoring() {
         engine.stop()
         autoBpmEstimator.reset()
+        autoBpmSampleEstimator.reset()
+        lastBpmIngestSourceWasSample = false
         fxDelay?.reset()
         fxDelay = null
         fxFlanger?.reset()
@@ -1248,7 +1298,33 @@ class AndroidAudioEngineController(
 
     fun isBpmAutoFollowEnabled(): Boolean = bpmAutoFollowEnabled
 
-    fun autoBpmReading(): AutoBpmReading = autoBpmEstimator.reading()
+    fun autoBpmReading(): AutoBpmReading {
+        val samplePlaying = loopPlayer.isLooping() || loopPlayer.isShotActive()
+        if (samplePlaying) {
+            val barBase = loopBpmAtUnityOrNull()
+            if (barBase != null) {
+                val m = PitchKnobMath.toPlaybackSpeedMultiplier(samplePitchPercent).toDouble()
+                return AutoBpmReading(
+                    bpm = (barBase * m).coerceIn(40.0, 280.0),
+                    confidence = 0.95f
+                )
+            }
+            return autoBpmSampleEstimator.reading()
+        }
+        return autoBpmEstimator.reading()
+    }
+
+    /**
+     * BPM of the loaded clip at **1.0× sample pitch** when [lastQuantizedBars] is set (4/4 bars).
+     */
+    private fun loopBpmAtUnityOrNull(): Double? {
+        val buf = loadedSample ?: return null
+        val bars = lastQuantizedBars ?: return null
+        if (buf.frameCount <= 0) return null
+        val raw = LoopBpmMath.bpmFromLoopFrames(buf.sampleRateHz, buf.frameCount, bars)
+        if (!raw.isFinite()) return null
+        return raw.coerceIn(40.0, 280.0)
+    }
 
     /**
      * Tap tempo using [elapsedRealtimeSeconds] (e.g. [android.os.SystemClock.elapsedRealtime] / 1000.0).
@@ -1263,12 +1339,16 @@ class AndroidAudioEngineController(
 
     fun resetBpmToDefault() {
         tapBpmEstimator.reset()
+        autoBpmEstimator.reset()
+        autoBpmSampleEstimator.reset()
         internalBpm.updateBpm(120.0)
         autoBpmEma = 120.0
     }
 
     /**
      * Loads a [SamplerBuffer] into the live sampler (e.g. bundled preset). Replaces any prior capture.
+     * Runs offline BPM estimation on the buffer and updates [currentBpm] when the estimate is confident;
+     * otherwise uses [bpmAtCapture] when non-null (e.g. library metadata or preset hint).
      * Thread-safe for UI thread; does not start transport — use [setLoopPlayback] to hear it.
      */
     @Synchronized
@@ -1278,11 +1358,43 @@ class AndroidAudioEngineController(
         bpmAtCapture: Double? = null
     ) {
         loadedSample = buffer
-        if (lastQuantizedBars != null) {
-            this.lastQuantizedBars = lastQuantizedBars
-        }
+        this.lastQuantizedBars = lastQuantizedBars
         bpmAtLastCapture = bpmAtCapture
         loopPlayer.load(buffer)
+        applyInternalBpmAfterSampleLoad(buffer, lastQuantizedBars, fallbackBpm = bpmAtCapture)
+    }
+
+    /**
+     * When [quantizedBars] is set, tempo comes from **loop length × 4/4 bar count** (matches quantized REC).
+     * Otherwise onset offline estimate + [fallbackBpm].
+     */
+    private fun applyInternalBpmAfterSampleLoad(
+        buffer: SamplerBuffer,
+        quantizedBars: QuantizedBars?,
+        fallbackBpm: Double?
+    ) {
+        val barBpm = quantizedBars?.let { bars ->
+            LoopBpmMath.bpmFromLoopFrames(buffer.sampleRateHz, buffer.frameCount, bars)
+        }
+        val use = when {
+            barBpm != null && barBpm.isFinite() && barBpm in 40.0..280.0 -> barBpm
+            else -> {
+                val r = AutoBpmEstimator.estimateFromInterleavedBuffer(
+                    buffer.pcm,
+                    buffer.channels,
+                    buffer.sampleRateHz
+                )
+                when {
+                    r.confidence >= SAMPLE_LOAD_BPM_MIN_CONFIDENCE -> r.bpm
+                    fallbackBpm != null && fallbackBpm.isFinite() && fallbackBpm > 0.0 -> fallbackBpm
+                    else -> null
+                }
+            }
+        }
+        if (use != null) {
+            internalBpm.updateBpm(use)
+            autoBpmEma = use
+        }
     }
 
     /**

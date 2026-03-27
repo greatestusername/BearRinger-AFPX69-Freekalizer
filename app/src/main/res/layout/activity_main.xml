@@ -202,7 +202,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:text="AUTO"
+                        android:text="@string/bpm_auto_follow"
                         android:textColor="@color/text_primary"
                         android:textSize="11sp" />
                 </LinearLayout>
@@ -988,7 +988,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="AUTO and TAP controls are on the top panel."
+                android:text="@string/bpm_auto_follow_help"
                 android:textColor="@color/text_muted"
                 android:textSize="12sp" />
 

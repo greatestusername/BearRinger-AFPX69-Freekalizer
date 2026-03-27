@@ -14,6 +14,7 @@ class SamplerLoopPlayer {
     private var pcm: FloatArray = FloatArray(0)
     private var sampleChannels: Int = 0
     private var loopPhase: Double = 0.0
+    @Volatile
     private var looping: Boolean = false
 
     /** User intent; applied when a buffer exists and after each [load]. */

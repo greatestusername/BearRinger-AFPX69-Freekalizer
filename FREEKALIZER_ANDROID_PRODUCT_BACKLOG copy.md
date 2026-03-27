@@ -161,6 +161,8 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 ### FR-5 BPM Counter
 
 - Auto BPM detection mode (onset-based estimator in `core` with confidence; optional **Follow AUTO BPM** applies to internal clock when confidence is high).
+- When a sample is **loaded** (preset WAV, library clip, etc.) with **quantized bar metadata** (`QuantizedBars`), set BPM from **loop PCM length** and 4/4 bar count (`LoopBpmMath`, inverse of quantized REC frame math) so one-bar @ 120 is exact; otherwise onset offline estimate, then BPM-at-capture fallback.
+- With **Follow AUTO BPM** on, while **PLAY/SHOT** drives the sampler (input monitor ducked), feed the **sampler premaster mix** (post–sample-pitch, pre–master-pitch/FX) into the same onset estimator so tempo can lock from the playing loop when the mic path is silent.
 - Tap BPM manual mode.
 - Show BPM confidence/failure state when beat cannot be detected (live % + lock hint in UI).
 
@@ -346,7 +348,7 @@ Goal: make beat-synced functions reliable.
 
 Stories:
 
-- `E5-S1` (P1, done) Implement auto BPM detection. (`AutoBpmEstimator` in `core` — energy-flux onsets, median IOI → BPM 40–280, no allocations in ingest path; Android feeds live interleaved input each callback; optional **Follow AUTO BPM** checkbox applies estimate when confidence ≥ threshold; `AutoBpmEstimatorTest` synthetic 120 BPM.)
+- `E5-S1` (P1, done) Implement auto BPM detection. (`AutoBpmEstimator` in `core` — energy-flux onsets, median IOI → BPM 40–280, no allocations in ingest path; Android uses **two** live estimators: mic/input vs **sampler bus** (when loop/SHOT active), switched with edge reset; optional **Follow AUTO BPM** applies the active source when confidence ≥ threshold; **offline** `estimateFromInterleavedBuffer` on load updates internal BPM when confidence ≥ sample-load threshold, else metadata fallback; UI status labels auto estimate as `sample` vs `input`; `AutoBpmEstimatorTest` synthetic 120 BPM.)
 - `E5-S2` (P1, done) Implement tap BPM averaging. (`TapBpmEstimator` in `core` — mean of recent inter-tap intervals, stale-gap reset, clamp 40–280; `InternalBpmTimingSource` + Android **TAP BPM** / **BPM → 120** buttons; live BPM line in top zone.)
 - `E5-S3` (P2, done) Implement BPM confidence indicator. (Reading bundled with auto estimator; UI shows confidence % and strong/weak/none lock hint alongside master BPM and AUTO estimate.)
 - `E5-S4` (P1, done) Drive quantized sampler/effects timing from BPM engine. (**Quantized REC** + bar-length frame targets now use `InternalBpmTimingSource.currentBpm()`; effects timing still TBD in E4.)
@@ -525,6 +527,12 @@ Defer:
 - `2026-03-27` - Filter knob UX fix: **vertical drag** (up/down) replaces angular scrubbing; scale **min** **7 o’clock**, **max** **5 o’clock**, **300°** CW past 10→12→3; tick **lit** sweep uses integer index from min to match pointer path; ticks drawn above cap, before hash.
 - `2026-03-27` - Knob radial ticks: arc uses `t=i/n` (same as pointer: **7→5** CW); active sweep = `internalProgress>0 && i*maxProgress <= internalProgress*n + maxProgress - 1`. **Only active ticks are drawn** (no dim full-ring), with stroke colors tuned for the silver bezel so **max** reads as a full tick arc and **min** shows **none**.
 - `2026-03-27` - UI polish: filter knobs show **radial tick marks** along the value arc with major/minor ticks and active sweep styling; main-board **buttons** use layered **chrome/silver** gradient + highlight (`bg_button_zone`).
+- `2026-03-27` - **FR-5 / E5-S1:** Loading a sample via `loadPresetSample` runs `AutoBpmEstimator.estimateFromInterleavedBuffer` on the buffer and sets internal BPM when confidence ≥ `SAMPLE_LOAD_BPM_MIN_CONFIDENCE`; otherwise uses `bpmAtCapture` when provided (preset hint, library metadata). Extends `ingestInterleavedInput` with optional frame offset for chunked offline analysis; unit test for offline path.
+- `2026-03-27` - **Follow AUTO BPM from playing sample:** second `AutoBpmEstimator` ingests the sampler mix each callback (after `mixInto`/`mixShotInto`, before master pitch and FX) when loop or SHOT is active; mic ingest paused in that state to avoid idle-noise IOIs. `bpmAutoFollow` applies whichever source is active; BPM status shows `sample` vs `input` for the auto readout.
+- `2026-03-27` - **AUTO BPM usability:** eased `AutoBpmEstimator` confidence (k/5 scaling), lowered follow apply threshold (~0.035), faster EMA toward detected BPM, softer sample-load threshold; **MENU BPM** copy explains mic vs loop + that BPM LED is confidence not a separate lock; status line hints when monitoring off or confidence low; **mic permission grant** now starts monitoring if not already running; checkbox label **Follow AUTO BPM**.
+- `2026-03-27` - **AUTO BPM detection fix:** `AutoBpmEstimator` now mono-downmixes stereo before flux (was left-channel-only — many loops have kick mainly on R/L), adds light pre-emphasis + slightly lower adaptive ratio for compressed loops; `SamplerLoopPlayer` `looping` marked `@Volatile` for UI→audio visibility; unit test for right-channel-only impulses.
+- `2026-03-27` - **AUTO BPM octave folding:** inter-onset intervals mapped into the BPM band by halving/doubling before median (fixes `drumloop.wav` and similar: 16th IOIs implied ~480 BPM → clamp 280 → zero confidence); added `core/src/test/resources/drumloop.wav` + `DrumloopWavBpmTest` (offline + 48 kHz chunked ingest matching the app).
+- `2026-03-27` - **Bar-accurate BPM:** `LoopBpmMath` derives tempo from loop frames × `QuantizedBars` (4/4); `loadPresetSample` and **Follow AUTO** while **PLAY/SHOT** use **base BPM × Sample Pitch** so detected/heard BPM tracks varispeed; unquantized clips still use onset estimators; `lastQuantizedBars` always replaced on load (clears when null).
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
