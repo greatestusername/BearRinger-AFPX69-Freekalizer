@@ -5,7 +5,12 @@ enum class QuantizedBars(val bars: Int) {
     BAR_2(2),
     BAR_4(4),
     BAR_8(8),
-    BAR_16(16)
+    BAR_16(16);
+
+    companion object {
+        fun fromBarCount(barCount: Int): QuantizedBars? =
+            entries.firstOrNull { it.bars == barCount }
+    }
 }
 
 object QuantizedLoopMath {

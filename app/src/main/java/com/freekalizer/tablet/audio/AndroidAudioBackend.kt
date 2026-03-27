@@ -52,6 +52,7 @@ class AndroidAudioBackend(
 
     private val clipThreshold = 0.98f
     private val clipHoldMs = 750L
+    private val jitterTracker = AudioCallbackJitterTracker()
 
     fun setPreferredDevices(inputId: Int?, outputId: Int?) {
         preferredInputDeviceId = inputId
@@ -68,12 +69,15 @@ class AndroidAudioBackend(
         )
     }
 
+    fun latencySnapshot(): AudioLatencySnapshot = jitterTracker.snapshot()
+
     override fun start(config: AudioEngineConfig, processor: AudioProcessor) {
         synchronized(lock) {
             check(!running) { "AndroidAudioBackend already running" }
             running = true
             stopRequested.set(false)
         }
+        jitterTracker.reset()
 
         val inChannels = config.inputChannels
         val outChannels = config.outputChannels
@@ -284,12 +288,16 @@ class AndroidAudioBackend(
         val emptyIn = FloatArray(0)
 
         while (!stopRequested.get()) {
+            val callbackStartNs = System.nanoTime()
+            jitterTracker.onCallbackStart(callbackStartNs)
             val framesActual: Int
             if (inputChannels == 0) {
                 // Silence: let processor handle it; inputFloat contents are ignored when inputChannels == 0.
                 framesActual = framesPerBurst
             } else {
+                val readStartNs = System.nanoTime()
                 val samplesRead = record!!.read(inputShort!!, 0, inSamplesExpected)
+                jitterTracker.onReadDone(System.nanoTime() - readStartNs)
                 if (samplesRead <= 0) {
                     java.util.Arrays.fill(outputFloat, 0f)
                     continue
@@ -302,7 +310,9 @@ class AndroidAudioBackend(
             }
 
             val inArray = if (inputChannels == 0) emptyIn else inputFloat
+            val processStartNs = System.nanoTime()
             processor.process(inArray, outputFloat, framesActual)
+            jitterTracker.onProcessDone(System.nanoTime() - processStartNs)
 
             val outSamples = framesActual * outputChannels
             val clampMin = -1.0f
@@ -338,7 +348,9 @@ class AndroidAudioBackend(
             if (outputClipped) outputClipUntilMs = now + clipHoldMs
 
             if (outSamples > 0) {
+                val writeStartNs = System.nanoTime()
                 track.write(outputShort, 0, outSamples, AudioTrack.WRITE_BLOCKING)
+                jitterTracker.onWriteDone(System.nanoTime() - writeStartNs)
             }
         }
     }

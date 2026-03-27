@@ -17,6 +17,8 @@ class InternalBpmTimingSource(
         bpm = nextBpm
     }
 
+    fun currentBpm(): Double = bpm
+
     override fun snapshotAt(monotonicSeconds: Double): TimingSnapshot {
         require(monotonicSeconds >= 0.0) { "monotonicSeconds must be >= 0" }
         val currentBpm = bpm

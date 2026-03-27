@@ -37,6 +37,16 @@ Validate Android module compilation:
 
 ## Run
 
+The debug build ships a **preset 1-bar drum loop** (`assets/drumloop.wav`, 120 BPM) loaded on startup so you can test sampler + pitch after **Start monitoring** → **PLAY/STOP** without recording.
+
+**Sample library** (`E6`): after capturing or with the preset loaded, use **SAVE to library** (optional name); clips persist under the app’s private files directory (`sample_library/`). **LOAD from library** restores audio and metadata (pitch, reverse, quantized bar hint when saved). Use **Rename** / **Delete** / **favorite** on the selected clip; favorites sort to the top (★ prefix). The **last loaded or saved** library id is restored on the next app launch when the files still exist.
+
+**BPM**: enable **Follow AUTO BPM** to drive the internal tempo from live input when the auto detector’s confidence is high; **TAP BPM** still overrides. The status line shows the AUTO estimate and confidence.
+
+**Delay** (`E4-S3`, FX route on): set **echo time in beats** (vs current BPM), **feedback**, and **wet**; turn **DELAY send** off to stop new audio entering the line while the **echo tail** decays.
+
+**Flanger** (`E4-S4`, FX route on): **LFO period in beats**, **base delay**, **sweep**, **manual** offset, **wet**; turn **FLANGER** off to bypass the effect while the modulator keeps running for clean toggling.
+
 Current runtime options:
 
 - JVM `core`: test-only (no `main` entrypoint)
@@ -69,8 +79,16 @@ adb shell am start -n com.freekalizer.tablet/.MainActivity
 Current verification flow is test-based:
 
 - Audio engine lifecycle tests
-- Timing source abstraction tests
+- Timing source abstraction tests (`TapBpmEstimator`, `AutoBpmEstimator`)
+- Effects tests (`BiquadMonoFilter`, delay line + `DelayBeatMath`, flanger + `FlangerBeatMath`)
+- Sampler + pitch edge-case tests (`SamplerLoopPlayerTest`, `PitchKnobMathTest`)
+- Sampler soak-style long-run stress (`SamplerLoopPlayerSoakTest`)
 - UI blueprint contract tests
+
+For device coverage and latency benchmarking guidance:
+
+- `docs/DEVICE_MATRIX.md`
+- `docs/LATENCY_BENCHMARK.md`
 
 ## Troubleshooting
 

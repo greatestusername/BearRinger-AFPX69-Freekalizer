@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.math.abs
 
 class SamplerLoopPlayerTest {
     @Test
@@ -89,5 +90,65 @@ class SamplerLoopPlayerTest {
         p.setShotPressed(true)
         p.mixShotInto(out, 1, 1)
         assertEquals(1f, out[0])
+    }
+
+    @Test
+    fun samplePitchHalfSpeedInterpolatesMidpoint() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(1f, 0f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setSamplePitchPercent(-50f)
+        p.setLooping(true)
+        val out = FloatArray(2)
+        p.mixInto(out, outputChannels = 1, frameCount = 2)
+        assertEquals(1f, out[0])
+        assertTrue(abs(out[1] - 0.5f) < 1e-4f)
+    }
+
+    @Test
+    fun samplePitchClampsAtPlusFiftyPercent() {
+        val p = SamplerLoopPlayer()
+        p.setSamplePitchPercent(500f)
+        assertEquals(50f, p.samplePitchPercent(), 1e-4f)
+    }
+
+    @Test
+    fun reverseShotStartsFromEndOfBuffer() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(0f, 0.5f, 1f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setReversePlayback(true)
+        p.setShotPressed(true)
+        val out = FloatArray(1)
+        p.mixShotInto(out, outputChannels = 1, frameCount = 1)
+        assertEquals(1f, out[0], 1e-4f)
+    }
+
+    @Test
+    fun clearStopsLoopAndShotImmediately() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(0.2f, 0.3f, 0.4f, 0.5f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setLooping(true)
+        p.setShotPressed(true)
+        p.clear()
+        val out = FloatArray(8)
+        p.mixInto(out, outputChannels = 1, frameCount = 8)
+        p.mixShotInto(out, outputChannels = 1, frameCount = 8)
+        assertTrue(out.all { abs(it) < 1e-9f })
+        assertFalse(p.isLooping())
+        assertFalse(p.isShotActive())
     }
 }

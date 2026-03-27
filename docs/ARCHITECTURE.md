@@ -28,6 +28,9 @@ Portable Kotlin logic:
 - `com.freekalizer.timing`
   - Timing source abstraction (`Internal BPM` and future `Ableton Link`)
   - Registry for runtime source switching and fallback behavior
+  - `TapBpmEstimator` (manual tap tempo) and `AutoBpmEstimator` (live-input onset-based BPM + confidence, audio-thread-safe ingest)
+- `com.freekalizer.effects`
+  - Filter biquads, BPM→delay frames (`DelayBeatMath`), stereo feedback delay (`InterleavedFeedbackDelay`), BPM LFO rate (`FlangerBeatMath`), stereo flanger (`StereoFlanger`), EQ shelves/peaking (`ShelfPeakingBiquad`, `ThreeBandStereoEq`), scratch ring (`ScratchRingBuffer`) for E4
 - `com.freekalizer.ui`
   - DFX69 tablet UI blueprint contract and manual-parity naming tokens
 
@@ -39,6 +42,8 @@ Portable Kotlin logic:
 
 ## Next Implementation Steps
 
-1. Replace placeholder Android backend with real low-latency callback path (AAudio/Oboe).
-2. Implement input/output route enumeration and route change handling (`E1-S2`, `E1-S3`).
-3. Add sampler core primitives in `core` and keep Android module focused on I/O and UI.
+1. Replace OpenSLES/legacy path with **AAudio** (or Oboe) where device support allows, keeping the same `AudioProcessor` contract.
+2. Effects engine (`E4`): filter / delay / scratch ring / flanger on the FX bus ahead of master pitch; monitor EQ on dry path before FX sum.
+3. Broaden BPM auto-detection (e.g. half-time/double-time disambiguation) without adding audio-thread allocations.
+
+The Android app already implements device enumeration, route rebind, sampler + pitch, tap/auto BPM UI, and file-backed sample library with rename/delete/favorite.

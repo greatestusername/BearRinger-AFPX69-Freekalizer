@@ -121,7 +121,7 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 
 - Provide DRY/WET mix behavior equivalent to DFX workflow.
 - Left side = dry signal only; right side = effect signal only.
-- Allow mix adjustment for selected/active effect, including Scratch mode.
+- Allows mix adjustment for selected/active effect, including Scratch mode. Each sample does not have its own dry/wet.
 
 ### FR-3 Sampler (Highest Priority)
 
@@ -154,14 +154,15 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 - Filter Resonance control knob
 - Flanger with BPM-relative timing and manual modulation.
 - Delay/echo with BPM-related timing values. Echo continue when effect is turned off (for momentary triggering). settable bar/beat divisions for delay/echo time
+  - NEW: Feedback setting knob for Delay/Echo in sub menu
 - Scratch effect via large touch wheel gesture.
 - 3-band EQ + kill style behavior buttons (LOW/MID/HIGH).
 
 ### FR-5 BPM Counter
 
-- Auto BPM detection mode.
+- Auto BPM detection mode (onset-based estimator in `core` with confidence; optional **Follow AUTO BPM** applies to internal clock when confidence is high).
 - Tap BPM manual mode.
-- Show BPM confidence/failure state when beat cannot be detected.
+- Show BPM confidence/failure state when beat cannot be detected (live % + lock hint in UI).
 
 ### FR-6 Sample Save/Load Library
 
@@ -289,7 +290,7 @@ Stories:
 - `E2-S4` (P0, done) Implement momentary playback (`SHOT`). (Separate shot read pointer + gate in `SamplerLoopPlayer.mixShotInto`; each press rewinds to sample start; loops while held; wired through FX-route and direct paths; `SHOT (hold)` button with touch + `requestDisallowInterceptTouchEvent` so `ScrollView` does not steal the gesture; theme fix `Widget.Freekalizer.SectionTitle` parent to `@android:style/Widget.TextView` to avoid inflation crashes on some builds.)
 - `E2-S5` (P1, done) Implement reverse playback (`REV`). (`SamplerLoopPlayer` backward loop/SHOT with wrap; `reverseRequested` survives new captures; Android `ToggleButton` + status line; unit test for backward order.)
 - `E2-S6` (P0, done) Implement sampler FX routing toggle. (`SamplerFxRouteIntent` in `core`; Android audio path uses dedicated `fxBusScratch` when routed through effects bus—identity today, ready for E3 main pitch + E4 DSP; `ToggleButton` + status in UI; `ManualLabels.FX_ROUTE` in blueprint.)
-- `E2-S7` (P1, todo) Display sampler progress, mode, and remaining time.
+- `E2-S7` (P1, done) Display sampler progress, mode, and remaining time. (`SamplerRecordingState` extended with sample rate, last quantized bars, BPM, loop/SHOT playheads; `SamplerLoopPlayer` publishes volatile playheads from the audio thread; sampler zone horizontal `ProgressBar` + `DISPLAY` status: mode line, REC elapsed/remaining as m:ss, loop/SHOT playhead, quantized BPM hint.)
 
 Acceptance criteria:
 
@@ -305,10 +306,10 @@ Goal: implement required dual-pitch semantics.
 
 Stories:
 
-- `E3-S1` (P0, todo) Implement Main Pitch knob (`-50%..+50%`, pitch-only).
-- `E3-S2` (P0, todo) Implement Sample Pitch knob (`-50%..+50%`, pitch+tempo).
-- `E3-S3` (P0, todo) Apply both pitch paths to sample in FX-routed mode.
-- `E3-S4` (P1, todo) Add precision display and reset-to-zero actions.
+- `E3-S1` (P0, done) Implement Main Pitch knob (`-50%..+50%`, pitch-only). (Portable `StreamingCheapPitchShifterMono` **phase-vocoder** STFT 512 / hop 128 + Hann OLA in `core`; stereo pair on FX bus after sampler mix; bypass near ratio 1.0; Android `SeekBar` + live label.)
+- `E3-S2` (P0, done) Implement Sample Pitch knob (`-50%..+50%`, pitch+tempo). (`PitchKnobMath` 0.5×..1.5× speed; `SamplerLoopPlayer` fractional phase + linear interpolation; no allocations in mix path.)
+- `E3-S3` (P0, done) Apply both pitch paths to sample in FX-routed mode. (FX route: sample pitch in `SamplerLoopPlayer` then main pitch on `fxBusScratch`; direct route: sample pitch only — master pitch N/A per backlog intent.)
+- `E3-S4` (P1, done) Add precision display and reset-to-zero actions. (SeekBar maps 0..100 → −50..+50 with signed percent in `DISPLAY`/sampler status + dedicated value lines; **Reset to 0%** buttons.)
 
 Acceptance criteria:
 
@@ -324,12 +325,12 @@ Goal: deliver core DFX-style effects for live performance.
 
 Stories:
 
-- `E4-S1` (P1, todo) Implement Filter (LP/HP/BP).
-- `E4-S2` (P1, todo) Implement Filter modes (LFO/Manual/Auto) + resonance.
-- `E4-S3` (P1, todo) Implement Delay with BPM-based timing.
-- `E4-S4` (P1, todo) Implement Flanger with timing/modulation controls.
-- `E4-S5` (P2, todo) Implement Scratch mode gesture + rolling buffer.
-- `E4-S6` (P2, todo) Implement 3-band EQ + kill behavior.
+- `E4-S1` (P1, done) Implement Filter (LP/HP/BP). (`BiquadMonoFilter` in `core`; Android applies it to `fxBusScratch` before master pitch shifter; UI LP/HP/BP buttons in EQ zone.)
+- `E4-S2` (P1, done) Implement Filter modes (LFO/Manual/Auto) + resonance. (Adds `FilterMode` in `core`; Android maps cutoff on a log knob, resonance→Q, implements LFO (BPM-related beat period + depth) and AUTO (input-envelope follower + depth); updates biquad coefficients on the audio callback without per-callback allocations; UI adds mode buttons + cutoff/resonance + LFO rate/depth + AUTO depth.)
+- `E4-S3` (P1, done) Implement Delay with BPM-based timing. (`DelayBeatMath` + `InterleavedFeedbackDelay` in `core`; FX-bus echo after filter before master pitch; beat divisions 1/4–4 beats from internal BPM; **send OFF** stops new input while feedback tail decays; UI: send toggle + beats + feedback + wet; tests for beat→frames + line.)
+- `E4-S4` (P1, done) Implement Flanger with timing/modulation controls. (`StereoFlanger` variable-delay feed-forward comb in `core`; `FlangerBeatMath` LFO Hz from beats/cycle vs internal BPM; FX order filter→delay→**flanger**→master pitch; **OFF** bypasses comb while ring/LFO advance; UI: ON toggle + LFO period + base/sweep/manual/wet sliders; tests for LFO math + bypass + engaged delta energy.)
+- `E4-S5` (P2, done) Implement Scratch mode gesture + rolling buffer. (`ScratchRingBuffer` in `core`; post-delay tap on FX bus; fractional read lag; vertical drag on performance surface; `ScratchRingBufferTest`.)
+- `E4-S6` (P2, done) Implement 3-band EQ + kill behavior. (`ShelfPeakingBiquad` + `ThreeBandStereoEq` — low shelf / mid peaking / high shelf; monitor path before FX sum; momentary LOW/MID/HIGH/KILL + ±12 dB SeekBars; `ThreeBandStereoEqTest`.)
 
 Acceptance criteria:
 
@@ -345,10 +346,10 @@ Goal: make beat-synced functions reliable.
 
 Stories:
 
-- `E5-S1` (P1, todo) Implement auto BPM detection.
-- `E5-S2` (P1, todo) Implement tap BPM averaging.
-- `E5-S3` (P2, todo) Implement BPM confidence indicator.
-- `E5-S4` (P1, todo) Drive quantized sampler/effects timing from BPM engine.
+- `E5-S1` (P1, done) Implement auto BPM detection. (`AutoBpmEstimator` in `core` — energy-flux onsets, median IOI → BPM 40–280, no allocations in ingest path; Android feeds live interleaved input each callback; optional **Follow AUTO BPM** checkbox applies estimate when confidence ≥ threshold; `AutoBpmEstimatorTest` synthetic 120 BPM.)
+- `E5-S2` (P1, done) Implement tap BPM averaging. (`TapBpmEstimator` in `core` — mean of recent inter-tap intervals, stale-gap reset, clamp 40–280; `InternalBpmTimingSource` + Android **TAP BPM** / **BPM → 120** buttons; live BPM line in top zone.)
+- `E5-S3` (P2, done) Implement BPM confidence indicator. (Reading bundled with auto estimator; UI shows confidence % and strong/weak/none lock hint alongside master BPM and AUTO estimate.)
+- `E5-S4` (P1, done) Drive quantized sampler/effects timing from BPM engine. (**Quantized REC** + bar-length frame targets now use `InternalBpmTimingSource.currentBpm()`; effects timing still TBD in E4.)
 - `E5-S5` (P1, done) Add timing source abstraction (`Internal BPM` vs `Ableton Link`) to avoid tightly coupling BPM consumers to one clock.
 
 Acceptance criteria:
@@ -365,10 +366,10 @@ Goal: app-native save/load and reusable sample sets.
 
 Stories:
 
-- `E6-S1` (P0, todo) Save sample audio and metadata.
-- `E6-S2` (P0, todo) Load sample into active sampler state.
-- `E6-S3` (P1, todo) Rename/delete/favorite items.
-- `E6-S4` (P1, todo) Persist latest session and restore on launch.
+- `E6-S1` (P0, done) Save sample audio and metadata. (Portable `SavedSampleMetadata` + `WavPcmIo` PCM16 WAV in `core`; app `SampleLibraryStore` writes `{uuid}.wav` + `{uuid}.meta.json` under `filesDir/sample_library/`; UI **SAVE to library** with optional name; metadata includes BPM-at-capture when available, duration, reverse, both pitch percents, optional quantized bar count.)
+- `E6-S2` (P0, done) Load sample into active sampler state. (**LOAD from library** spinner; WAV decode + resample to engine rate if needed; restores `loadPresetSample`, reverse, pitch SeekBars, stops loop; `bpmAtLastCapture` from file for DISPLAY context.)
+- `E6-S3` (P1, done) Rename/delete/favorite items. (`SavedSampleMetadata.favorite` + JSON key; `SampleLibraryStore.renameClip` / `deleteClip` / `setFavorite`; spinner shows ★ prefix and favorites-first sort; **Rename** / **Delete** / favorite `ToggleButton`; clearing last-session id when deleted clip was restored target.)
+- `E6-S4` (P1, done) Persist latest session and restore on launch. (SharedPreferences `last_library_sample_id`; cold start loads that clip + metadata before falling back to preset drumloop; clears key if files missing.)
 
 Acceptance criteria:
 
@@ -383,14 +384,15 @@ Goal: touch-first live performance interface.
 
 Stories:
 
-- `E7-S1` (P1, done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android scrollable four-zone layout in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; disabled placeholders for SHOT/REV/EQ/effects until later stories.)
-- `E7-S2` (P1, todo) Implement large controls and press/hold interactions.
-- `E7-S3` (P1, todo) Add clear state indicators (recording, clipping, bpm lock, fx route).
-- `E7-S4` (P2, todo) Add optional dark stage mode and high-contrast labels.
+- `E7-S1` (P1, partially-done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android scrollable four-zone layout in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; disabled placeholders for SHOT/REV/EQ/effects until later stories.)
+- `E7-S2` (P1, done) Implement large controls and press/hold interactions. (Main board now uses larger touch targets for performative controls and explicit press/hold feedback: `SHOT` and EQ kill buttons are highlighted live while held; scratch surface remains dominant and hold-safe.)
+- `E7-S3` (P1, todo) Verify Layout UI
+- `E7-S4` (P1, done) Add clear state indicators (recording, clipping, bpm lock, fx route). (Dedicated board LED row added for `REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`, refreshed on the existing 100 ms UI ticker from live engine state.)
+- `E7-S5` (P2, todo) Add optional dark stage mode and high-contrast labels.
 
 Acceptance criteria:
 
-- Core live controls are accessible with one hand per side on tablet.
+- Core live controls are accessible with one hand.
 - State changes are visible in less than 100 ms perceived UI delay.
 
 ---
@@ -401,11 +403,11 @@ Goal: make Android MVP stable and shippable.
 
 Stories:
 
-- `E8-S1` (P1, todo) Define supported Android versions/devices matrix.
-- `E8-S2` (P1, todo) Add automated tests for sampler/pitch edge cases.
-- `E8-S3` (P1, todo) Add long-run soak test for audio dropout/crash.
+- `E8-S1` (P1, done) Define supported Android versions/devices matrix. (Added `docs/DEVICE_MATRIX.md` with API bands, device classes, required validation passes, matrix rows M1-M5, and MVP exit criteria.)
+- `E8-S2` (P1, done) Add automated tests for sampler/pitch edge cases. (Expanded `SamplerLoopPlayerTest` and `PitchKnobMathTest` with clamp/mapping/reverse-shot/clear-state edge coverage.)
+- `E8-S3` (P1, done) Add long-run soak test for audio dropout/crash. (Added deterministic `SamplerLoopPlayerSoakTest` long-run stress pass with repeated reverse/SHOT/pitch transitions and finite-output assertions.)
 - `E8-S4` (P2, todo) Build crash logging + performance telemetry.
-- `E8-S5` (P1, todo) Add latency benchmark harness (input-to-output and callback jitter) for target Android tablets.
+- `E8-S5` (P1, done) Add latency benchmark harness (input-to-output and callback jitter) for target Android tablets. (Added low-overhead backend callback/jitter tracker + controller snapshot API and benchmarking doc `docs/LATENCY_BENCHMARK.md`.)
 
 Acceptance criteria:
 
@@ -431,7 +433,6 @@ Stories:
 - `E9-S8` (P1, todo) Implement conflict policy between internal BPM tap/auto and external Link tempo proposals.
 - `E9-S9` (P1, todo) Add latency compensation and timing calibration for Link-aligned playback.
 - `E9-S10` (P1, todo) Add multi-device interoperability tests (at least two Link peers, mixed app scenarios).
-
 Acceptance criteria:
 
 - With Link enabled, app tempo converges with external Link peers and remains stable.
@@ -467,7 +468,7 @@ Defer:
 
 - Exact max sample duration for free mode and storage constraints
 - Number of simultaneous sample slots in MVP (single active slot vs multiple)
-- DSP implementation for pitch-only vs pitch+tempo quality/performance tradeoff
+- DSP implementation for pitch-only vs pitch+tempo quality/performance tradeoff (**current:** sample pitch = varispeed; main pitch = 512-point **phase-vocoder** STFT — further upgrade: Rubber Band / higher FFT / native)
 - First supported tablet models for initial device matrix (API baseline set to 29+)
 - iOS portability stack choice for shared DSP core
 - Ableton Link licensing path and distribution implications for planned app license
@@ -497,6 +498,28 @@ Defer:
 - `2026-03-26` - Fixed startup crash from device spinner feedback loop (`updateDeviceUi` → `onItemSelected` → `emit` → repeat): suppress spinner callbacks while rebinding, restore selection to match `AudioDeviceRepository`, emit only on real selection changes, idempotent `AudioDeviceRepository.start` / `emit` on device plug-in; completed `E2-S5` `REV` reverse loop/SHOT; README note on installing emulator system images; verified `./gradlew :core:test` + `:app:assembleDebug`.
 - `2026-03-26` - Hardening for API 34 / emulator: detach input/output spinner listeners while swapping adapters; defer `syncEngineControllerToSelection` to a posted runnable (coalesced) so route/rebind is not synchronous with stream setup; non-reentrant `rebindIfRunning` guard in `AndroidAudioEngineController`.
 - `2026-03-26` - **Root startup crash fix:** `AndroidAudioEngineController` must not be constructed as an Activity field (runs before `onCreate`); `Activity.getSystemService` throws `IllegalStateException` — instantiate after `super.onCreate()` in `MainActivity`. Verified with `adb install` + `am start` on API 34 emulator (process stays alive).
+- `2026-03-26` - Completed `E2-S7`: sampler `DISPLAY` status (mode, REC progress % and m:ss elapsed/total/remaining, loaded sample duration and playhead during loop/SHOT), horizontal progress bar for record and playback heads, core `SamplerLoopPlayer` volatile playhead fields for UI polling; `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Completed `E3-S1`–`E3-S4`: dual pitch system (`PitchKnobMath`, `StreamingCheapPitchShifterMono`, fractional-phase `SamplerLoopPlayer`), FX-bus main pitch + direct/sample-only path, tablet SeekBars and reset + status text; `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - Upgraded main pitch to **phase-vocoder** STFT (512 / 128 hop); added `PcmResampler` + `WavPcmDecoder` + bundled **`drumloop.wav`** in `assets` (120 BPM, 1 bar) loaded on `MainActivity` startup via `PresetDrumloopLoader` / `loadPresetSample` for instant sampler testing.
+- `2026-03-26` - **E5-S2** tap BPM + **E5-S4** wiring: `TapBpmEstimator`, `InternalBpmTimingSource` drives quantized `REC` targets and UI BPM display; `./gradlew :core:test` + `:app:assembleDebug` succeed.
+- `2026-03-26` - **E6-S1** / **E6-S2**: sample library save/load — `WavPcmIo` encode/decode in `core` (replaces app-only decoder), `SavedSampleMetadata`, `QuantizedBars.fromBarCount`, `bpmAtLastCapture` on engine for capture-time BPM; Android `SampleLibraryStore` + sampler zone UI; verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - **E6-S4**: last library sample id in SharedPreferences; restore on launch or preset fallback.
+- `2026-03-26` - **E5-S1** / **E5-S3**: `AutoBpmEstimator` + confidence reading in `core` (tests); Android **Follow AUTO BPM** + richer BPM status line; **E6-S3** library rename/delete/favorite + metadata persistence; `./gradlew :core:test` + `:app:assembleDebug` verified.
+- `2026-03-26` - Completed `E4-S1` filter (LP/HP/BP) on FX bus: portable `BiquadMonoFilter` in `core`, applied in monitoring callback before master pitch, plus EQ zone UI buttons; verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Completed `E4-S2` filter modes + resonance: Manual/LFO/Auto mode controls and resonance + modulation depth controls; BPM-related LFO period; AUTO envelope follower from live input; verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Completed `E4-S3` BPM-synced delay / echo on FX bus with tail-only mode when send is off; core tests + `./gradlew :core:test` + `:app:assembleDebug` verified.
+- `2026-03-26` - Completed `E4-S4` BPM-LFO flanger on FX bus (`StereoFlanger` + UI); verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Completed `E4-S5` scratch ring (post-delay FX tap, touch surface) and `E4-S6` three-band monitor EQ + kill + gain sliders (`ThreeBandStereoEq`, `ShelfPeakingBiquad`, `ScratchRingBuffer`); verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-26` - Implemented non-scrolling ASCII-style board layout pass in `activity_main.xml`: fixed portrait hardware surface with persistent performative controls, dedicated empty-area submenu buttons (`MENU AUDIO/BPM/SAMPLER/FX/LIBRARY/SYSTEM`), and one-level submenu panels for non-ASCII controls while preserving `MainActivity` bindings; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Completed `E7-S2` + `E7-S4`: added explicit main-board live state LEDs (`REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`) driven by engine state/meter confidence at 100 ms update cadence; added clearer hold interaction feedback for `SHOT` and EQ kill buttons (live pressed coloring) with no audio-path behavior changes; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Scratch feel tuning pass (`E4-S5` quality): replaced abrupt lag jumps with smoothed lag-target slew while touch is active, reduced gesture sensitivity, constrained scratch lag window to a short vinyl-like range, and added deadzone jitter rejection to reduce zipper/glitch artifacts; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Vinyl scratch + filter safety pass: scratch now uses signed platter-speed control (supports true backward scrub while touching), adds `Smooth / Classic / Cut` scratch-feel presets in `MENU FX`, and tightens high-cutoff filter behavior by capping max cutoff below Nyquist and damping effective resonance near top-end to prevent harsh clipping spikes; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Completed `E8-S1` / `E8-S2` / `E8-S3` / `E8-S5`: added device matrix doc (`docs/DEVICE_MATRIX.md`), expanded sampler/pitch edge tests, added long-run sampler soak test, and integrated callback/jitter benchmark harness (`AudioCallbackJitterTracker`, `AudioLatencySnapshot`, backend/controller snapshot APIs) with usage guide (`docs/LATENCY_BENCHMARK.md`); verified `./gradlew :core:test` + `:app:assembleDebug`.
+- `2026-03-27` - Live-monitor safety + EQ kill reliability pass: input monitor is auto-muted while sample loop/SHOT is active to prevent mic->speaker feedback during performance playback, added input monitor gain control in `MENU AUDIO`, and hardened EQ kill touch handling (move/outside/cancel release) to prevent stuck kill states requiring app restart; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - EQ/input workflow correction pass: moved input gain control to the front panel top strip (`IN GAIN` above former MIX slot), expanded EQ gain range to `±24 dB`, moved EQ processing to post-sum output path so bands/kills affect audible output consistently, and added ticker-level safety release for kill holds if touch-up/cancel is missed; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Follow-up control regression fix: restored visible front-panel `MIX` control while keeping `IN GAIN` on the top strip, strengthened kill-state synchronization by mirroring actual button pressed state each UI tick, and widened scratch lag/rate behavior to keep continuous bidirectional grab without re-pressing; verified `./gradlew :app:assembleDebug`.
+- `2026-03-27` - Performance control polish pass: reduced master-pitch artifacts by moving to a larger STFT shifter window with overlap normalization, remapped scratch pad to explicit axes (`Y` playback position, `X` volume) with on-pad axis labels and gradient cue, switched EQ kill buttons to stable tap-to-cut behavior using band gains (`-36 dB`) and expanded EQ range to `±36 dB`, lowered AUTO BPM follow confidence threshold for easier lock-in, added double-tap reset-to-default across primary sliders, and set delay feedback default to `60%`; verification pending local device pass.
+- `2026-03-27` - FX routing order update: scratch is now placed before delay/flanger by default so scratch gestures are processed through downstream FX; filter is pinned to the end of the FX chain, and a new `MENU FX` order selector allows `Scratch -> FX -> Filter` or `FX -> Scratch -> Filter` runtime selection without restarting audio.
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!

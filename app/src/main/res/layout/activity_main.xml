@@ -1,433 +1,1343 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_app"
-    android:fillViewport="true"
     tools:context=".MainActivity">
 
     <LinearLayout
+        android:id="@+id/board_root"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_margin="12dp"
+        android:background="@drawable/bg_zone_panel"
         android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="24dp">
+        android:padding="10dp"
+        android:layout_above="@+id/menu_row">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:paddingBottom="8dp"
+            android:gravity="center"
             android:text="@string/app_name"
             android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
-
-        <!-- Zone: TOP_STATUS_AND_MASTER -->
-        <TextView
-            style="@style/Widget.Freekalizer.SectionTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/zone_top_status" />
 
         <LinearLayout
             android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:orientation="horizontal"
+            android:padding="6dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.6"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="IN"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_input_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="OUT"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_output_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+
+                    <TextView
+                        android:id="@+id/meter_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp"
+                        tools:text="IN 24% OUT 31%" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="REC"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_rec_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="CLIP"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_clip_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="BPM LOCK"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_bpm_lock_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:text="FX ROUTE"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:id="@+id/led_fx_route_state"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginStart="4dp"
+                        android:background="@color/led_off" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/bpm_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="120"
+                        android:textColor="@color/text_primary"
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/bpm_auto_indicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="AUTO"
+                        android:textColor="@color/accent_led_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/bpm_tap"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_zone"
+                        android:text="@string/bpm_tap"
+                        android:textColor="@color/accent_led_cyan"
+                        android:textSize="11sp" />
+
+                    <CheckBox
+                        android:id="@+id/bpm_auto_follow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="AUTO"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bpm_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp"
+                    tools:text="auto 119 | confidence 67% | beat lock: strong" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/master_pitch_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp"
+                    tools:text="MASTER PITCH: 0%" />
+
+                <SeekBar
+                    android:id="@+id/master_pitch_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="64dp"
+                    android:max="100"
+                    android:progress="50"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <Button
+                    android:id="@+id/master_pitch_reset"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:text="@string/pitch_reset_zero"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="0.9"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/input_gain_front_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/label_input_gain"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <SeekBar
+                    android:id="@+id/input_gain_front_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:max="2000"
+                    android:progress="1000"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <TextView
+                    android:id="@+id/main_mix_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:text="@string/fx_mix"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <SeekBar
+                    android:id="@+id/main_mix_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:max="1000"
+                    android:progress="800"
+                    android:progressTint="@color/accent_led_cyan" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <Button
+                android:id="@+id/rec_quantized"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/rec_quantized"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1.2"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <Spinner
+                    android:id="@+id/bar_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:popupBackground="@color/surface_zone" />
+
+                <Button
+                    android:id="@+id/play_stop"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:text="@string/play_stop"
+                    android:textColor="@color/accent_led_cyan"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1.2"
+                android:orientation="vertical">
+
+                <ToggleButton
+                    android:id="@+id/fx_route_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/fx_route_off"
+                    android:textOn="@string/fx_route_on" />
+
+                <ToggleButton
+                    android:id="@+id/rev_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/rev_off"
+                    android:textOn="@string/rev_on" />
+
+                <com.freekalizer.tablet.ui.TransportGridProgressView
+                    android:id="@+id/transport_grid_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="28dp"
+                    android:layout_marginTop="6dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/shot_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="6dp"
+                android:layout_weight="0.9"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/shot_hold"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/sample_pitch_value"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp"
+                    tools:text="SAMPLE PITCH: 0%" />
+
+                <SeekBar
+                    android:id="@+id/sample_pitch_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="64dp"
+                    android:max="100"
+                    android:progress="50"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <Button
+                    android:id="@+id/sample_pitch_reset"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:text="@string/pitch_reset_zero"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/eq_gain_legend"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <SeekBar
+                    android:id="@+id/eq_low_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:max="1000"
+                    android:progress="500"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <SeekBar
+                    android:id="@+id/eq_mid_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:max="1000"
+                    android:progress="500"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <SeekBar
+                    android:id="@+id/eq_high_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="56dp"
+                    android:max="1000"
+                    android:progress="500"
+                    android:progressTint="@color/accent_led_cyan" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1.2"
+                android:gravity="bottom"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/eq_low_kill"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_zone"
+                        android:text="@string/eq_low"
+                        android:textAllCaps="false"
+                        android:textColor="@color/accent_led_cyan"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/eq_mid_kill"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_zone"
+                        android:text="@string/eq_mid"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/eq_high_kill"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_zone"
+                        android:text="@string/eq_high"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/eq_kill_all"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_zone"
+                        android:text="@string/eq_kill"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="2"
+            android:background="@drawable/bg_button_zone"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/filter_cutoff_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fx_filter_cutoff"
+                    android:textColor="@color/accent_led_cyan"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <SeekBar
+                    android:id="@+id/filter_cutoff_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="1000"
+                    android:minHeight="88dp"
+                    android:progress="550"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <ToggleButton
+                    android:id="@+id/delay_feed_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/delay_feed_off"
+                    android:textOn="@string/delay_feed_on" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/scratch_surface"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="2.2"
+                android:background="@drawable/bg_zone_panel"
+                android:clickable="true"
+                android:focusable="true">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_scratch_volume_gradient" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/placeholder_scratch"
+                    android:textColor="@color/text_muted"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|start"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/scratch_y_axis"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/scratch_x_axis"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.9"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/filter_resonance_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fx_filter_resonance"
+                    android:textColor="@color/accent_led_cyan"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <SeekBar
+                    android:id="@+id/filter_resonance_seek"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="1000"
+                    android:minHeight="88dp"
+                    android:progress="250"
+                    android:progressTint="@color/accent_led_cyan" />
+
+                <ToggleButton
+                    android:id="@+id/flanger_bypass_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_button_zone"
+                    android:textColor="@color/text_primary"
+                    android:textOff="@string/flanger_off"
+                    android:textOn="@string/flanger_on" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="6dp"
+            android:layout_weight="0.7"
+            android:background="@drawable/bg_button_zone"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <Button
+                android:id="@+id/filter_lp_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_lp"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_led_cyan"
+                android:textSize="10sp" />
+
+            <Button
+                android:id="@+id/filter_bp_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_bp"
+                android:textAllCaps="false"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp" />
+
+            <Button
+                android:id="@+id/filter_hp_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_hp"
+                android:textAllCaps="false"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp" />
+
+            <Button
+                android:id="@+id/filter_mode_auto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_mode_auto"
+                android:textAllCaps="false"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp" />
+
+            <Button
+                android:id="@+id/filter_mode_lfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_mode_lfo"
+                android:textAllCaps="false"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp" />
+
+            <Button
+                android:id="@+id/filter_mode_manual"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/fx_filter_mode_manual"
+                android:textAllCaps="false"
+                android:textColor="@color/accent_led_cyan"
+                android:textSize="10sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/menu_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="8dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/menu_audio"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_zone_panel"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_audio"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/menu_bpm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_bpm"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/menu_sampler"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_sampler"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/menu_fx"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_fx"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/menu_library"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_library"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/menu_system"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_system"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/submenu_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:visibility="gone"
+        android:clickable="true" />
+
+    <LinearLayout
+        android:id="@+id/submenu_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="18dp"
+        android:background="@drawable/bg_zone_panel"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/submenu_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_button_zone"
+            android:text="@string/menu_close"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary" />
+
+        <LinearLayout
+            android:id="@+id/panel_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/permission_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_muted"
-                android:textSize="14sp"
                 tools:text="Mic permission: GRANTED" />
 
             <Button
                 android:id="@+id/request_mic"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/grant_mic"
+                android:textAllCaps="false"
                 android:textColor="@color/text_primary" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:labelFor="@id/input_spinner"
-                android:text="@string/label_input_device"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
 
             <Spinner
                 android:id="@+id/input_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:popupBackground="@color/surface_zone" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:labelFor="@id/output_spinner"
-                android:text="@string/label_output_device"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
 
             <Spinner
                 android:id="@+id/output_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:popupBackground="@color/surface_zone" />
+
+            <Button
+                android:id="@+id/start_monitoring"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/start_monitoring"
+                android:textColor="@color/accent_led_cyan" />
+
+            <Button
+                android:id="@+id/stop_monitoring"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/stop_monitoring"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:id="@+id/route_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/text_muted"
-                android:textSize="12sp"
-                tools:text="Selected input id: default" />
-
-            <TextView
-                android:id="@+id/meter_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:lineSpacingExtra="4dp"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                tools:text="IN LEVEL: 0%  OVERLOAD IN: NO" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/placeholder_bpm"
                 android:textColor="@color/text_muted"
-                android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/placeholder_master_pitch"
-                android:textColor="@color/text_muted"
-                android:textSize="14sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/start_monitoring"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:text="@string/start_monitoring"
-                    android:textColor="@color/accent_led_cyan" />
-
-                <Button
-                    android:id="@+id/stop_monitoring"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:text="@string/stop_monitoring"
-                    android:textColor="@color/text_primary" />
-            </LinearLayout>
+                android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Zone: SAMPLER_TRANSPORT_AND_ROUTING -->
-        <TextView
-            style="@style/Widget.Freekalizer.SectionTitle"
+        <LinearLayout
+            android:id="@+id/panel_bpm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/zone_sampler" />
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AUTO and TAP controls are on the top panel."
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/bpm_default"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/bpm_default_120"
+                android:textColor="@color/text_muted" />
+        </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/panel_sampler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_zone_panel"
+            android:layout_marginTop="8dp"
             android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/label_rec_length_quantized"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
-
-            <Spinner
-                android:id="@+id/bar_spinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:popupBackground="@color/surface_zone" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/label_free_rec_cap"
-                android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+            android:visibility="gone">
 
             <Spinner
                 android:id="@+id/free_cap_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
                 android:popupBackground="@color/surface_zone" />
 
-            <TextView
-                android:id="@+id/recording_status"
+            <Button
+                android:id="@+id/rec_free"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:lineSpacingExtra="4dp"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                tools:text="REC: OFF" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/rec_quantized"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:text="@string/rec_quantized"
-                    android:textColor="@color/text_primary" />
-
-                <Button
-                    android:id="@+id/rec_free"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:text="@string/rec_free"
-                    android:textColor="@color/text_primary" />
-            </LinearLayout>
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/rec_free"
+                android:textColor="@color/text_primary" />
 
             <Button
                 android:id="@+id/rec_free_stop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/end_free_rec"
                 android:textColor="@color/text_muted" />
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/recording_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/play_stop"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:text="@string/play_stop"
-                    android:textColor="@color/accent_led_cyan" />
-
-                <ToggleButton
-                    android:id="@+id/fx_route_toggle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:textColor="@color/text_primary"
-                    android:textOff="@string/fx_route_off"
-                    android:textOn="@string/fx_route_on" />
-            </LinearLayout>
+                android:textColor="@color/text_primary"
+                android:textSize="12sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/placeholder_sample_pitch"
+                android:layout_marginTop="8dp"
+                android:text="Master pitch span"
                 android:textColor="@color/text_muted"
-                android:textSize="14sp" />
+                android:textSize="11sp" />
+
+            <Spinner
+                android:id="@+id/master_pitch_range_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/panel_fx"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="FILTER SETTINGS"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/filter_lfo_rate_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_filter_lfo_rate"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/filter_lfo_rate_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:popupBackground="@color/surface_zone" />
+
+            <TextView
+                android:id="@+id/filter_lfo_depth_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_filter_lfo_depth"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/filter_lfo_depth_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="500"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:id="@+id/filter_auto_depth_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_filter_auto_depth"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/filter_auto_depth_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="1000"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="DELAY SETTINGS"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_delay_beats"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/delay_beats_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_delay_feedback"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/delay_feedback_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="600"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_delay_wet"
+                android:textColor="@color/text_muted" />
+
+            <SeekBar
+                android:id="@+id/delay_wet_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="350"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="FLANGER SETTINGS"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fx_flanger_lfo_period"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/flanger_lfo_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+
+            <SeekBar
+                android:id="@+id/flanger_base_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="400"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <SeekBar
+                android:id="@+id/flanger_sweep_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="350"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <SeekBar
+                android:id="@+id/flanger_manual_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="500"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <SeekBar
+                android:id="@+id/flanger_wet_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:minHeight="52dp"
+                android:progress="450"
+                android:progressTint="@color/accent_led_cyan" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/fx_scratch_feel"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/scratch_preset_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/fx_order_mode"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/fx_order_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:popupBackground="@color/surface_zone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/panel_library"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/save_sample_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/hint_sample_save_name"
+                android:importantForAutofill="no"
+                android:inputType="textCapWords"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_muted" />
 
             <Button
-                android:id="@+id/shot_button"
+                android:id="@+id/save_sample_library"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/bg_button_zone"
-                android:text="@string/shot_hold"
-                android:textAllCaps="false"
+                android:text="@string/save_sample_library"
+                android:textColor="@color/accent_led_cyan" />
+
+            <Spinner
+                android:id="@+id/library_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:popupBackground="@color/surface_zone" />
+
+            <Button
+                android:id="@+id/load_sample_library"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/load_sample_library"
                 android:textColor="@color/text_primary" />
 
             <ToggleButton
-                android:id="@+id/rev_toggle"
+                android:id="@+id/library_favorite_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/bg_button_zone"
                 android:textColor="@color/text_primary"
-                android:textOff="@string/rev_off"
-                android:textOn="@string/rev_on" />
-        </LinearLayout>
+                android:textOff="@string/library_favorite_off"
+                android:textOn="@string/library_favorite_on" />
 
-        <!-- Zone: EQ_AND_KILL -->
-        <TextView
-            style="@style/Widget.Freekalizer.SectionTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/zone_eq" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_zone_panel"
-            android:orientation="vertical"
-            android:padding="16dp">
+            <EditText
+                android:id="@+id/library_rename_field"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:hint="@string/library_rename_hint"
+                android:importantForAutofill="no"
+                android:inputType="textCapWords"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_muted" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/library_rename_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/eq_low"
-                    android:textColor="@color/text_muted" />
+                    android:text="@string/library_rename_apply"
+                    android:textColor="@color/accent_led_cyan" />
 
                 <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/eq_mid"
-                    android:textColor="@color/text_muted" />
-
-                <Button
+                    android:id="@+id/library_delete_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/eq_high"
+                    android:text="@string/library_delete_clip"
                     android:textColor="@color/text_muted" />
             </LinearLayout>
-
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_button_zone"
-                android:enabled="false"
-                android:text="@string/eq_kill"
-                android:textColor="@color/text_muted" />
-        </LinearLayout>
-
-        <!-- Zone: PERFORMANCE_SURFACE -->
-        <TextView
-            style="@style/Widget.Freekalizer.SectionTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/zone_performance" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_zone_panel"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="20dp">
 
             <TextView
+                android:id="@+id/library_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:minHeight="120dp"
-                android:text="@string/placeholder_scratch"
+                android:layout_marginTop="4dp"
                 android:textColor="@color/text_muted"
-                android:textSize="16sp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:weightSum="4">
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/fx_filter"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/fx_flanger"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/fx_delay"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button_zone"
-                    android:enabled="false"
-                    android:text="@string/fx_mix"
-                    android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                android:textSize="12sp" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/panel_system"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/menu_system_hint"
+            android:textColor="@color/text_muted"
+            android:visibility="gone" />
     </LinearLayout>
-</ScrollView>
+
+    <TextView
+        android:id="@+id/eq_low_label"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0"
+        android:text="@string/eq_low" />
+    <TextView
+        android:id="@+id/eq_mid_label"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0"
+        android:text="@string/eq_mid" />
+    <TextView
+        android:id="@+id/eq_high_label"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0"
+        android:text="@string/eq_high" />
+
+</RelativeLayout>

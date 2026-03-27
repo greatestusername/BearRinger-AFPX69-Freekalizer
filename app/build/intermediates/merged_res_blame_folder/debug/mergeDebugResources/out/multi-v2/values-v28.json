@@ -4,7 +4,7 @@
             "outputFile": "com.freekalizer.tablet.app-mergeDebugResources-2:/values-v28/values-v28.xml",
             "map": [
                 {
-                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/000bc2184d47895f8c3ad488fdeb3650/gradle/caches/8.13/transforms/f7be424a2134316141d6a5296d86f880/transformed/appcompat-1.7.0/res/values-v28/values-v28.xml",
+                    "source": "/private/var/folders/mg/vwrcsp59769cn0vjttc9rd2r0000gn/T/cursor-sandbox-cache/5d020975d58fea593560f08b1665776b/gradle/caches/8.13/transforms/f7be424a2134316141d6a5296d86f880/transformed/appcompat-1.7.0/res/values-v28/values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,8",
                         "startColumns": "4,4,4,4",
