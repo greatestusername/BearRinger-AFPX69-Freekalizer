@@ -45,7 +45,7 @@
     <string name="eq_mid">MID</string>
     <string name="eq_high">HIGH</string>
     <string name="eq_kill">ALL CUT</string>
-    <string name="eq_gain_legend">EQ −36…+24 dB (peaking)</string>
+    <string name="eq_gain_legend">EQ −50…+24 dB (peaking)</string>
     <string name="fx_filter">FILTER</string>
     <string name="fx_filter_lp">LOW PASS (LP)</string>
     <string name="fx_filter_hp">HIGH PASS (HP)</string>

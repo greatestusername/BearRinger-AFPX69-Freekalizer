@@ -19,7 +19,7 @@ Current repo status:
 - **Delay** (`E4-S3`): BPM-timed **echo** (1/4–4 beats) with **feedback** and **wet**; **DELAY send OFF** keeps the **tail** decaying (no new input into the line).
 - **Flanger** (`E4-S4`): BPM-synced **LFO** (beats/cycle), **base delay**, **sweep**, **manual** offset, **wet**; **FLANGER OFF** bypasses the comb (smooth re-enable).
 - **Scratch** (`E4-S5`): rolling stereo buffer fed **after delay**, before flanger; **performance surface** vertical drag adjusts read lag (FX route on, loop/sample audible).
-- **Monitor EQ** (`E4-S6`): **low / mid / high** shelves/peaking in `core`, applied to the **dry monitoring buffer** before the sampler FX sum; **LOW/MID/HIGH/KILL** momentary + **±12 dB** band SeekBars.
+- **Monitor EQ** (`E4-S6`): **low / mid / high** shelves/peaking in `core`, on the summed output path; **LOW/MID/HIGH/KILL** tap-to-cut + band SeekBars **−50 .. +24 dB** (`ThreeBandStereoEq.MIN_DB` / `BOOST_MAX_DB`).
 - **UX state feedback** (`E7-S2` / `E7-S4`): dedicated board LEDs for `REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`; press-and-hold controls (`SHOT`, EQ kill buttons) now show immediate visual held-state feedback.
 
 The product requirements and backlog live in:

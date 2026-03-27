@@ -156,7 +156,7 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 - Delay/echo with BPM-related timing values. Echo continue when effect is turned off (for momentary triggering). settable bar/beat divisions for delay/echo time
   - NEW: Feedback setting knob for Delay/Echo in sub menu
 - Scratch effect via large touch wheel gesture.
-- 3-band EQ + kill style behavior buttons (LOW/MID/HIGH).
+- 3-band EQ + kill style behavior buttons (LOW/MID/HIGH); band faders **−50 dB .. +24 dB** (kill uses fader minimum).
 
 ### FR-5 BPM Counter
 
@@ -330,7 +330,7 @@ Stories:
 - `E4-S3` (P1, done) Implement Delay with BPM-based timing. (`DelayBeatMath` + `InterleavedFeedbackDelay` in `core`; FX-bus echo after filter before master pitch; beat divisions 1/4–4 beats from internal BPM; **send OFF** stops new input while feedback tail decays; UI: send toggle + beats + feedback + wet; tests for beat→frames + line.)
 - `E4-S4` (P1, done) Implement Flanger with timing/modulation controls. (`StereoFlanger` variable-delay feed-forward comb in `core`; `FlangerBeatMath` LFO Hz from beats/cycle vs internal BPM; FX order filter→delay→**flanger**→master pitch; **OFF** bypasses comb while ring/LFO advance; UI: ON toggle + LFO period + base/sweep/manual/wet sliders; tests for LFO math + bypass + engaged delta energy.)
 - `E4-S5` (P2, done) Implement Scratch mode gesture + rolling buffer. (`ScratchRingBuffer` in `core`; post-delay tap on FX bus; fractional read lag; vertical drag on performance surface; `ScratchRingBufferTest`.)
-- `E4-S6` (P2, done) Implement 3-band EQ + kill behavior. (`ShelfPeakingBiquad` + `ThreeBandStereoEq` — low shelf / mid peaking / high shelf; monitor path before FX sum; momentary LOW/MID/HIGH/KILL + ±12 dB SeekBars; `ThreeBandStereoEqTest`.)
+- `E4-S6` (P2, done) Implement 3-band EQ + kill behavior. (`ShelfPeakingBiquad` + `ThreeBandStereoEq` — low shelf / mid peaking / high shelf; post-sum output path; tap-to-cut LOW/MID/HIGH/KILL to fader minimum; band SeekBars **−50 .. +24 dB**; `ThreeBandStereoEqTest`.)
 
 Acceptance criteria:
 
@@ -384,7 +384,7 @@ Goal: touch-first live performance interface.
 
 Stories:
 
-- `E7-S1` (P1, partially-done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android scrollable four-zone layout in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; disabled placeholders for SHOT/REV/EQ/effects until later stories.)
+- `E7-S1` (P1, partially-done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android portrait board + modal submenus in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; **MENU FX** / other dense panels scroll inside the modal so all controls stay reachable; main performance surface stays non-scrolling.)
 - `E7-S2` (P1, done) Implement large controls and press/hold interactions. (Main board now uses larger touch targets for performative controls and explicit press/hold feedback: `SHOT` and EQ kill buttons are highlighted live while held; scratch surface remains dominant and hold-safe.)
 - `E7-S3` (P1, todo) Verify Layout UI
 - `E7-S4` (P1, done) Add clear state indicators (recording, clipping, bpm lock, fx route). (Dedicated board LED row added for `REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`, refreshed on the existing 100 ms UI ticker from live engine state.)
@@ -518,8 +518,9 @@ Defer:
 - `2026-03-27` - Live-monitor safety + EQ kill reliability pass: input monitor is auto-muted while sample loop/SHOT is active to prevent mic->speaker feedback during performance playback, added input monitor gain control in `MENU AUDIO`, and hardened EQ kill touch handling (move/outside/cancel release) to prevent stuck kill states requiring app restart; verified `./gradlew :app:assembleDebug`.
 - `2026-03-27` - EQ/input workflow correction pass: moved input gain control to the front panel top strip (`IN GAIN` above former MIX slot), expanded EQ gain range to `±24 dB`, moved EQ processing to post-sum output path so bands/kills affect audible output consistently, and added ticker-level safety release for kill holds if touch-up/cancel is missed; verified `./gradlew :app:assembleDebug`.
 - `2026-03-27` - Follow-up control regression fix: restored visible front-panel `MIX` control while keeping `IN GAIN` on the top strip, strengthened kill-state synchronization by mirroring actual button pressed state each UI tick, and widened scratch lag/rate behavior to keep continuous bidirectional grab without re-pressing; verified `./gradlew :app:assembleDebug`.
-- `2026-03-27` - Performance control polish pass: reduced master-pitch artifacts by moving to a larger STFT shifter window with overlap normalization, remapped scratch pad to explicit axes (`Y` playback position, `X` volume) with on-pad axis labels and gradient cue, switched EQ kill buttons to stable tap-to-cut behavior using band gains (`-36 dB`) and expanded EQ range to `±36 dB`, lowered AUTO BPM follow confidence threshold for easier lock-in, added double-tap reset-to-default across primary sliders, and set delay feedback default to `60%`; verification pending local device pass.
+- `2026-03-27` - Performance control polish pass: reduced master-pitch artifacts by moving to a larger STFT shifter window with overlap normalization, remapped scratch pad to explicit axes (`Y` playback position, `X` volume) with on-pad axis labels and gradient cue, switched EQ kill buttons to stable tap-to-cut behavior by snapping bands to the fader minimum, widened EQ fader span toward live-mix needs (see current `ThreeBandStereoEq.MIN_DB` / `BOOST_MAX_DB`), lowered AUTO BPM follow confidence threshold for easier lock-in, added double-tap reset-to-default across primary sliders, and set delay feedback default to `60%`; verification pending local device pass.
 - `2026-03-27` - FX routing order update: scratch is now placed before delay/flanger by default so scratch gestures are processed through downstream FX; filter is pinned to the end of the FX chain, and a new `MENU FX` order selector allows `Scratch -> FX -> Filter` or `FX -> Scratch -> Filter` runtime selection without restarting audio.
+- `2026-03-27` - EQ fader range set to **−50 .. +24 dB** (`ThreeBandStereoEq.MIN_DB`); kill buttons still snap bands to the fader minimum. **MENU FX** submenu body wrapped in a weighted `ScrollView` so long panels (filter/delay/flanger/reverb/tape/scratch preset/**FX processing order**) are not clipped on tablet portrait.
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!

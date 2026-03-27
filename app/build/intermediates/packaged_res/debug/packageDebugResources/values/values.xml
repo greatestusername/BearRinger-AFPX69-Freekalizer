@@ -18,7 +18,7 @@
     <string name="delay_feed_off">DELAY send: OFF (tail)</string>
     <string name="delay_feed_on">DELAY send: ON</string>
     <string name="end_free_rec">End free REC now</string>
-    <string name="eq_gain_legend">EQ −36…+24 dB (peaking)</string>
+    <string name="eq_gain_legend">EQ −50…+24 dB (peaking)</string>
     <string name="eq_high">HIGH</string>
     <string name="eq_kill">ALL CUT</string>
     <string name="eq_low">LOW</string>

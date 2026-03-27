@@ -88,7 +88,7 @@ class ThreeBandStereoEq(
 
     companion object {
         /** Fader minimum / kill “bottom” (matches UI and engine clamp). */
-        const val MIN_DB: Float = -36f
+        const val MIN_DB: Float = -50f
 
         /** Fader maximum boost. */
         const val BOOST_MAX_DB: Float = 24f

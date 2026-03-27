@@ -899,7 +899,7 @@ class AndroidAudioEngineController(
     fun eqLowDb(): Float = eqLowDb
 
     fun setEqMidDb(db: Float) {
-        eqMidDb = db.coerceIn(ThreeBandStereoEq.KILL_DB, ThreeBandStereoEq.BOOST_MAX_DB)
+        eqMidDb = db.coerceIn(ThreeBandStereoEq.MIN_DB, ThreeBandStereoEq.BOOST_MAX_DB)
         eqParamsDirty = true
     }
 

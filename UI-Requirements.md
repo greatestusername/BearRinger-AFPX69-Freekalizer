@@ -2,7 +2,7 @@ Implement ASCII Hardware Layout (Android Tablet)
 
 Outcome
 
-Create a hardware-faithful portrait UI that matches UI-Layout-Draft-Ascii-Art.txt while preserving existing audio control behavior in MainActivity. The surface keeps only performance-critical controls visible; detailed/secondary controls move to submenu panels launched from dedicated buttons in empty board areas. NO SCROLLING TO USE THE INTERFACE!
+Create a hardware-faithful portrait UI that matches UI-Layout-Draft-Ascii-Art.txt while preserving existing audio control behavior in MainActivity. The surface keeps only performance-critical controls visible; detailed/secondary controls move to submenu panels launched from dedicated buttons in empty board areas. **No scrolling on the main performance board.** Dense submenus (especially **MENU FX**) may scroll inside the modal sheet so every parameter—including FX chain order—stays reachable on portrait tablets.
 
 Current Baseline (what to leverage)
 
@@ -90,7 +90,7 @@ Sampler menu: free-rec cap picker, capture status text, progress details, revers
 
 
 
-FX menu: advanced delay/flanger/filter numeric controls (beats/depth/feedback/wet/manual params).
+FX menu: advanced delay/flanger/filter numeric controls (beats/depth/feedback/wet/manual params), reverb/tape, scratch-feel preset, and **FX processing order**; panel is vertically scrollable inside the modal when content exceeds viewport height.
 
 
 
