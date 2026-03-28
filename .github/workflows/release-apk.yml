@@ -1,0 +1,78 @@
+# Manual: Actions → Build and release APK → Run workflow.
+# Produces a debug APK (CI-friendly; add signing secrets later for release builds).
+# Always uploads a workflow artifact; optionally creates a GitHub Release with the APK attached.
+
+name: Build and release APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag for GitHub Release (leave empty to skip creating a Release)"
+        required: false
+        type: string
+      prerelease:
+        description: Mark GitHub Release as pre-release
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-34
+            build-tools;34.0.0
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Unit tests
+        run: ./gradlew test --no-daemon --stacktrace
+
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Stage APK for upload
+        id: stage
+        run: |
+          OUT="Freekalizer-AFPX69-debug-run${{ github.run_number }}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$OUT"
+          echo "apk_path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: freekalizer-afpx69-debug-apk
+          path: ${{ steps.stage.outputs.apk_path }}
+          if-no-files-found: error
+
+      - name: GitHub Release with APK
+        if: ${{ github.event.inputs.tag != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          generate_release_notes: true
+          files: ${{ steps.stage.outputs.apk_path }}
