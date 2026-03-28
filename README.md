@@ -26,6 +26,13 @@ The product requirements and backlog live in:
 
 - `FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md`
 
+## CI and releases (GitHub Actions)
+
+- **Pull requests:** workflow **PR checks** runs `./gradlew test` and `:app:assembleDebug`.
+- **Manual APK:** **Actions → Build and release APK → Run workflow** — downloads an artifact from the run; optionally enter a **tag** to create a **GitHub Release** with the APK attached (debug build until release signing is added).
+
+Governance (`CODEOWNERS`, branch protection checklist): [docs/GITHUB_GOVERNANCE.md](docs/GITHUB_GOVERNANCE.md).
+
 ## Quick Start
 
 1. Install dependencies (macOS):
@@ -39,7 +46,7 @@ The product requirements and backlog live in:
 
 The app module is ready to install on an **API 29+** emulator or device.
 
-1. Open the **repository root** (`tweakalizer-tablet`) in Android Studio, not only the `app` folder.
+1. Open the **repository root** (your clone directory, e.g. `BearRinger-AFPX69-Freekalizer`) in Android Studio, not only the `app` folder.
 2. **File → Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**: choose **JDK 17**.
 3. Let **Gradle sync** finish. If you see **SDK location not found**, either:
    - **File → Settings → Languages & Frameworks → Android SDK** and set the SDK path (Studio will write `local.properties`), or
@@ -90,6 +97,8 @@ Detailed install and workflow docs:
 - `app/` - Android app module scaffold (`com.freekalizer.tablet`)
 - `core/` - portable logic (audio engine contracts, timing model, UI blueprint contract)
 - `docs/` - setup and build/test/run documentation
+- `.github/workflows/` - PR CI and manual APK workflow
+- `.github/CODEOWNERS` - default review requests
 - `FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md` - living requirements and backlog
 
 ## Notes

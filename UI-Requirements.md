@@ -264,7 +264,7 @@ Keep naming aligned with ManualLabels in PerformanceUiSpec.
 
 
 
-Update [FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md]( /Users/macbearpig/repos/greatestusername/tweakalizer-tablet/FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md ) with any scope mapping decisions while implementing.
+Update [FREEKALIZER_ANDROID_PRODUCT_BACKLOG copy.md](FREEKALIZER_ANDROID_PRODUCT_BACKLOG%20copy.md) with any scope mapping decisions while implementing.
 
 flowchart TD
     asciiLayout[ASCIIBoardSpec] --> boardControls[MainBoardVisibleControls]

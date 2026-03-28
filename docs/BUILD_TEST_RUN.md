@@ -7,6 +7,10 @@ This repository contains:
 - `core` Kotlin JVM portable logic module
 - `app` Android application scaffold module
 
+## CI
+
+On GitHub, pull requests run **PR checks** (same Gradle commands as below). See [GITHUB_GOVERNANCE.md](GITHUB_GOVERNANCE.md) for branch protection and manual APK workflow.
+
 ## Build
 
 From repo root:

@@ -534,6 +534,7 @@ Defer:
 - `2026-03-27` - **AUTO BPM octave folding:** inter-onset intervals mapped into the BPM band by halving/doubling before median (fixes `drumloop.wav` and similar: 16th IOIs implied ~480 BPM → clamp 280 → zero confidence); added `core/src/test/resources/drumloop.wav` + `DrumloopWavBpmTest` (offline + 48 kHz chunked ingest matching the app).
 - `2026-03-27` - **Bar-accurate BPM:** `LoopBpmMath` derives tempo from loop frames × `QuantizedBars` (4/4); `loadPresetSample` and **Follow AUTO** while **PLAY/SHOT** use **base BPM × Sample Pitch** so detected/heard BPM tracks varispeed; unquantized clips still use onset estimators; `lastQuantizedBars` always replaced on load (clears when null).
 - `2026-03-27` - **Product identity:** user-facing name **Freekalizer AFPX69** (`app_name` launcher label / recents); vector launcher icon (concentric cyan rings + eye); backlog/README/UI-Requirements/ARCHITECTURE/`backup-requirements.md` use the same naming (package id unchanged: `com.freekalizer.tablet`).
+- `2026-03-28` - **Repo automation:** added GitHub Actions **PR checks** (`test` + `:app:assembleDebug`) and manual **Build and release APK** (artifact + optional GitHub Release); `.github/CODEOWNERS` for `@greatestusername`; `docs/GITHUB_GOVERNANCE.md` documents branch protection and review settings; README/UI-Requirements naming cleanup (DFX69 / Freekalizer AFPX69, relative backlog link).
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
