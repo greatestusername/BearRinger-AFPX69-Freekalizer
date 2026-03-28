@@ -1,6 +1,6 @@
-# Freekalizer Tablet
+# Freekalizer AFPX69 App
 
-Android-first, low-latency audio app foundation inspired by the Behringer Freekalizer DFX69 workflow.
+Android-first, low-latency audio app foundation inspired by the Behringer Tweakalizer DFX69 workflow.
 
 Current repo status:
 

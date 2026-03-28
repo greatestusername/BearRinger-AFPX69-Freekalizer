@@ -1,8 +1,8 @@
-# Freekalizer Android App - Living Requirements and Backlog
+# Freekalizer AFPX69 — Living Requirements and Backlog
 
 ## Document Purpose
 
-This is the primary, living product document for the Freekalizer tablet app effort. It captures:
+This is the primary, living product document for **Freekalizer AFPX69**, the Android tablet app. It captures:
 
 - Original project context and goals
 - Product requirements (Android-first, iOS-portable)
@@ -17,7 +17,7 @@ Update this file as scope, priorities, and technical decisions evolve.
 
 Project intent:
 
-- Build an Android tablet app inspired by the Behringer Freekalizer DFX69. Follow all best practices for Audio Latency sensitive apps on tablets!
+- Build **Freekalizer AFPX69** for Android tablets, inspired by the Behringer DFX69 (see manual PDF). Follow all best practices for audio-latency-sensitive performance apps on tablets!
 - App must accept input from Android audio input paths (mic/headset/line-in/USB where available).
 - App must play output through Android output paths (speaker/headphone jack/USB output where available).
 - Highest priority is the sampling workflow and LOW LATENCY FOR PERFORMANCE

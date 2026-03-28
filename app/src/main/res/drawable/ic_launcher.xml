@@ -5,9 +5,43 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#FF121212"
+        android:fillColor="#FF0D1117"
         android:pathData="M0,0h108v108h-108z" />
+    <!-- Concentric rings (radar / lens vibe) -->
     <path
-        android:fillColor="#FF00CFE6"
-        android:pathData="M54,30 L76,54 L54,78 L32,54 Z" />
+        android:fillColor="#00000000"
+        android:strokeColor="#4D00CFE6"
+        android:strokeWidth="2"
+        android:pathData="M 54,12 a 42,42 0 1,1 0,84 a 42,42 0 1,1 0,-84" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#7300CFE6"
+        android:strokeWidth="2"
+        android:pathData="M 54,21 a 33,33 0 1,1 0,66 a 33,33 0 1,1 0,-66" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#9900CFE6"
+        android:strokeWidth="2"
+        android:pathData="M 54,30 a 24,24 0 1,1 0,48 a 24,24 0 1,1 0,-48" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#CC00CFE6"
+        android:strokeWidth="1.75"
+        android:pathData="M 54,39 a 15,15 0 1,1 0,30 a 15,15 0 1,1 0,-30" />
+    <!-- Eye: sclera -->
+    <path
+        android:fillColor="#FFE8EDF2"
+        android:pathData="M 40,54 C 40,45 46,39 54,39 C 62,39 68,45 68,54 C 68,63 62,69 54,69 C 46,69 40,63 40,54 Z" />
+    <!-- Iris -->
+    <path
+        android:fillColor="#FF00A3B8"
+        android:pathData="M 54,54 m -9.5,0 a 9.5,9.5 0 1,0 19,0 a 9.5,9.5 0 1,0 -19,0" />
+    <!-- Pupil -->
+    <path
+        android:fillColor="#FF06080A"
+        android:pathData="M 54,54 m -4.75,0 a 4.75,4.75 0 1,0 9.5,0 a 4.75,4.75 0 1,0 -9.5,0" />
+    <!-- Specular highlight -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M 56.5,50.5 m -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0" />
 </vector>

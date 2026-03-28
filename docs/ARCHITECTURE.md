@@ -2,6 +2,7 @@
 
 ## Goals
 
+- Ship **Freekalizer AFPX69** (user-facing app name on Android; package id remains `com.freekalizer.tablet`).
 - Keep low-latency-sensitive logic portable and testable.
 - Isolate platform-specific audio/device code from DSP/timing/domain behavior.
 - Avoid duplicated rules for UI labels/layout semantics.

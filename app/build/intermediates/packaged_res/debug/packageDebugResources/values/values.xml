@@ -12,7 +12,7 @@
     <color name="surface_zone">#FFBEBFC4</color>
     <color name="text_muted">#FF4A4A4E</color>
     <color name="text_primary">#FF0D0D0D</color>
-    <string name="app_name">Freekalizer Tablet</string>
+    <string name="app_name">Freekalizer AFPX69</string>
     <string name="bpm_auto_follow">Follow AUTO BPM</string>
     <string name="bpm_auto_follow_help">Check Follow AUTO BPM on the top panel. Requires Start Monitoring. Mic when idle; PLAY/SHOT uses the sampler. If the clip came from a **bar-quantized** source (preset bar, quantized REC, library clip with bar count), tempo is **exact** from loop length (4/4) × Sample Pitch—no guessing. Otherwise onset detection is used. BPM LOCK LED still reflects confidence for mic/unquantized sampler.</string>
     <string name="bpm_default_120">BPM → 120</string>

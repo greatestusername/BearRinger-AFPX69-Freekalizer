@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Freekalizer Tablet</string>
+    <string name="app_name">Freekalizer AFPX69</string>
     <string name="zone_top_status">Top — input, meters, BPM, master pitch</string>
     <string name="zone_sampler">Sampler — transport, loop length, FX route</string>
     <string name="zone_eq">EQ + kill + band gain</string>

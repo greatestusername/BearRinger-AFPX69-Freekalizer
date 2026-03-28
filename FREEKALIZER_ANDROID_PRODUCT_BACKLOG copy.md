@@ -1,8 +1,8 @@
-# Freekalizer Android App - Living Requirements and Backlog
+# Freekalizer AFPX69 — Living Requirements and Backlog
 
 ## Document Purpose
 
-This is the primary, living product document for the Freekalizer tablet app effort. It captures:
+This is the primary, living product document for **Freekalizer AFPX69**, the Android tablet app. It captures:
 
 - Original project context and goals
 - Product requirements (Android-first, iOS-portable)
@@ -17,7 +17,7 @@ Update this file as scope, priorities, and technical decisions evolve.
 
 Project intent:
 
-- Build an Android tablet app inspired by the Behringer Freekalizer DFX69. Follow all best practices for Audio Latency sensitive apps on tablets!
+- Build **Freekalizer AFPX69** for Android tablets, inspired by the Behringer DFX69 (see manual PDF). Follow all best practices for audio-latency-sensitive performance apps on tablets!
 - App must accept input from Android audio input paths (mic/headset/line-in/USB where available).
 - App must play output through Android output paths (speaker/headphone jack/USB output where available).
 - Highest priority is the sampling workflow and LOW LATENCY FOR PERFORMANCE
@@ -533,6 +533,7 @@ Defer:
 - `2026-03-27` - **AUTO BPM detection fix:** `AutoBpmEstimator` now mono-downmixes stereo before flux (was left-channel-only — many loops have kick mainly on R/L), adds light pre-emphasis + slightly lower adaptive ratio for compressed loops; `SamplerLoopPlayer` `looping` marked `@Volatile` for UI→audio visibility; unit test for right-channel-only impulses.
 - `2026-03-27` - **AUTO BPM octave folding:** inter-onset intervals mapped into the BPM band by halving/doubling before median (fixes `drumloop.wav` and similar: 16th IOIs implied ~480 BPM → clamp 280 → zero confidence); added `core/src/test/resources/drumloop.wav` + `DrumloopWavBpmTest` (offline + 48 kHz chunked ingest matching the app).
 - `2026-03-27` - **Bar-accurate BPM:** `LoopBpmMath` derives tempo from loop frames × `QuantizedBars` (4/4); `loadPresetSample` and **Follow AUTO** while **PLAY/SHOT** use **base BPM × Sample Pitch** so detected/heard BPM tracks varispeed; unquantized clips still use onset estimators; `lastQuantizedBars` always replaced on load (clears when null).
+- `2026-03-27` - **Product identity:** user-facing name **Freekalizer AFPX69** (`app_name` launcher label / recents); vector launcher icon (concentric cyan rings + eye); backlog/README/UI-Requirements/ARCHITECTURE/`backup-requirements.md` use the same naming (package id unchanged: `com.freekalizer.tablet`).
 
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
