@@ -1,6 +1,6 @@
 # Freekalizer AFPX69 App
 
-Android-first, low-latency audio app foundation inspired by the Behringer Tweakalizer DFX69 workflow.
+Android-first, low-latency audio app foundation inspired by the Behringer DFX69 (Freekalizer) performance workflow.
 
 Current repo status:
 
@@ -12,13 +12,14 @@ Current repo status:
 - Tablet UI (`E7-S1`): non-scrolling board-style portrait layout (`activity_main.xml`) aligned to the DFX69 blueprint with one-level submenu panels (`MENU AUDIO/BPM/SAMPLER/FX/LIBRARY/SYSTEM`) for non-performance controls.
 - Sampler status (`E2-S7`): **DISPLAY** line for mode (idle / REC quantized or free / loop / SHOT), recording progress with remaining time (m:ss), sample length and playhead during loop or held SHOT, plus a cyan horizontal progress bar.
 - Pitch (`E3`): **MASTER PITCH** (pitch-only **phase-vocoder** STFT on the FX bus when FX ROUTE is on) and **SAMPLE PITCH** (pitch+tempo / varispeed on the sampler) with −50%..+50% SeekBars, reset-to-0%, and live labels.
-- **BPM** (`E5-S1` / `E5-S2` / `E5-S3` / `E5-S4`): **TAP BPM** (≥3 beats); **Follow AUTO BPM** on **mic** when idle; with **PLAY/SHOT**, if the clip has **bar metadata** (`QuantizedBars` from preset, quantized REC, or library), tempo is **`LoopBpmMath`** from PCM length (4/4) × **Sample Pitch**—exact for e.g. one-bar `drumloop.wav` at 120, and **follows varispeed**; otherwise sampler uses onset `AutoBpmEstimator`; load path prefers bar math, then onset, then saved BPM; status line tags **sample** / **input**; **BPM → 120** resets; **quantized REC** uses internal BPM.
+- **BPM** (`E5-S1` / `E5-S2` / `E5-S3` / `E5-S4`): **TAP BPM** (≥3 beats); **Follow AUTO BPM** on **mic** when idle; with **PLAY/SHOT**, if the clip has **bar metadata** (`QuantizedBars` from preset, quantized REC, or library), tempo is **`LoopBpmMath`** from PCM length (4/4) × **Sample Pitch**—exact for e.g. one-bar `drumloop.wav` at 120, and **follows varispeed**; otherwise sampler uses onset `AutoBpmEstimator`; load path prefers bar math, then onset, then saved BPM; status line tags **sample** / **input**; **BPM → 120** resets; **quantized REC** uses internal BPM; **BPM beat:** red dot pulses in the **center of the filter Cutoff** knob (`RotaryKnobView` + `showBpmBeatIndicator`).
 - **Preset drum loop** on launch: `app/src/main/assets/drumloop.wav` (source of truth for editing: `docs/drumloop.wav` — recopy to `assets/` after changes) loads at **120 BPM**, **one bar** — start monitoring, then **PLAY/STOP** to hear it without recording first.
-- **Sample library** (`E6-S1` / `E6-S2` / `E6-S3` / `E6-S4`): **SAVE** / **LOAD** — WAV + JSON under `filesDir/sample_library/`; **rename**, **delete**, **favorite** (★ in spinner, favorites first); **last loaded or saved clip restores on app restart** (otherwise preset drumloop); deleting the restored clip clears the saved session id.
+- **Sample library** (`E6-S1`–`E6-S5`): **SAVE** / **LOAD** — WAV + JSON under `filesDir/sample_library/`; **LOAD WAV** in **MENU LIBRARY** opens the system picker to import **PCM16 WAV** from storage (SD/files/cloud); import enables **continuous loop** and does not persist as the “last library” session restore id; **rename**, **delete**, **favorite** (★ in spinner, favorites first); **last loaded or saved internal clip restores on app restart** (otherwise preset drumloop); deleting the restored clip clears the saved session id.
 - **Filter** (`E4-S1` / `E4-S2`): FX-bus biquad **LP/HP/BP** with **MANUAL/LFO/AUTO** modes and **resonance**. LFO is BPM-related (beat period + depth) and AUTO follows live input envelope.
 - **Delay** (`E4-S3`): BPM-timed **echo** (1/4–4 beats) with **feedback** and **wet**; **DELAY send OFF** keeps the **tail** decaying (no new input into the line).
 - **Flanger** (`E4-S4`): BPM-synced **LFO** (beats/cycle), **base delay**, **sweep**, **manual** offset, **wet**; **FLANGER OFF** bypasses the comb (smooth re-enable).
-- **Scratch** (`E4-S5`): rolling stereo buffer fed **after delay**, before flanger; **performance surface** vertical drag adjusts read lag (FX route on, loop/sample audible).
+- **Scratch** (`E4-S5`): rolling stereo buffer fed **after delay**, before flanger; **Y** / **X** scrub and volume; **still finger** **pauses** phase; **while scrubbing**, phase gets an **extra** step `norm×2.1` per sample (`norm` = signed rate / preset span, −1..1) **on top of** varispeed so **drag down** can **net-reverse** playhead/progress. **MENU FX** scratch-feel presets and FX order still apply.
+- **MENU AUDIO**: optional **Keep screen on while app is open** (saved in session prefs) sets `FLAG_KEEP_SCREEN_ON` while foregrounded.
 - **Monitor EQ** (`E4-S6`): **low / mid / high** shelves/peaking in `core`, on the summed output path; **LOW/MID/HIGH/KILL** tap-to-cut + band SeekBars **−50 .. +24 dB** (`ThreeBandStereoEq.MIN_DB` / `BOOST_MAX_DB`).
 - **UX state feedback** (`E7-S2` / `E7-S4`): dedicated board LEDs for `REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`; press-and-hold controls (`SHOT`, EQ kill buttons) now show immediate visual held-state feedback.
 

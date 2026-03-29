@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet / large portrait (smallest width ≥ 600dp): original board proportions. -->
+    <dimen name="board_margin_outer">12dp</dimen>
+    <dimen name="board_padding">10dp</dimen>
+    <dimen name="title_text_size">18sp</dimen>
+    <dimen name="zone_spacing">6dp</dimen>
+    <dimen name="zone_padding_compact">6dp</dimen>
+    <dimen name="zone_padding_comfort">8dp</dimen>
+    <dimen name="led_size">12dp</dimen>
+    <dimen name="gap_xs">2dp</dimen>
+    <dimen name="gap_sm">4dp</dimen>
+    <dimen name="gap_md">4dp</dimen>
+    <dimen name="gap_lg">6dp</dimen>
+    <dimen name="spacing_control">6dp</dimen>
+    <dimen name="gap_xl">8dp</dimen>
+    <dimen name="margin_column">8dp</dimen>
+    <dimen name="margin_led_group">12dp</dimen>
+    <dimen name="margin_bpm_led">10dp</dimen>
+    <dimen name="text_small">10sp</dimen>
+    <dimen name="text_label">11sp</dimen>
+    <dimen name="text_effect_toggle">11sp</dimen>
+    <dimen name="text_panel">11sp</dimen>
+    <dimen name="text_bpm_auto">12sp</dimen>
+    <dimen name="text_bpm_value">28sp</dimen>
+    <dimen name="text_knob_title">12sp</dimen>
+    <dimen name="seek_pitch_min_height">64dp</dimen>
+    <dimen name="seek_gain_min_height">48dp</dimen>
+    <dimen name="seek_eq_min_height">56dp</dimen>
+    <dimen name="seek_submenu_tall_min_height">52dp</dimen>
+    <dimen name="seek_submenu_short_min_height">48dp</dimen>
+    <dimen name="knob_cutoff_size">152dp</dimen>
+    <dimen name="knob_resonance_size">108dp</dimen>
+    <dimen name="transport_progress_height">28dp</dimen>
+    <dimen name="scratch_placeholder_text">14sp</dimen>
+    <dimen name="scratch_axis_text">10sp</dimen>
+    <dimen name="filter_row_padding_h">8dp</dimen>
+    <dimen name="pitch_block_margin_top">10dp</dimen>
+    <dimen name="menu_row_margin_h">24dp</dimen>
+    <dimen name="menu_row_margin_b">8dp</dimen>
+    <dimen name="submenu_margin">18dp</dimen>
+    <dimen name="submenu_padding">10dp</dimen>
+    <dimen name="scrollbar_submenu">6dp</dimen>
+    <dimen name="eq_kill_button_gap">4dp</dimen>
+    <dimen name="submenu_section_gap">8dp</dimen>
+</resources>

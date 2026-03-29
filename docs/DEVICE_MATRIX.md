@@ -23,7 +23,7 @@ For each primary matrix row, run:
 2. Route changes (plug/unplug where applicable) with no crash
 3. Sampler workflow: quantized REC, free REC, PLAY/STOP, SHOT, REV
 4. FX workflow: filter, delay, flanger, scratch, EQ kill
-5. Save/load/rename/delete/favorite sample library flow
+5. Sample library: save/load/rename/delete/favorite internal clips + **LOAD WAV** import from storage (loop on after import)
 6. 10-minute continuous run with no crash/dropout (E8-S3 short pass)
 
 ## Matrix Rows

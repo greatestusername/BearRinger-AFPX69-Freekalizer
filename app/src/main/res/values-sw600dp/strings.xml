@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Full labels and help copy on tablet (smallest width ≥ 600dp). Default values/ strings stay compact for phones. -->
+    <string name="bpm_auto_follow_help">Check Follow AUTO BPM on the top panel. Requires Start Monitoring. Mic when idle; PLAY/SHOT uses the sampler. If the clip came from a **bar-quantized** source (preset bar, quantized REC, library clip with bar count), tempo is **exact** from loop length (4/4) × Sample Pitch—no guessing. Otherwise onset detection is used. BPM LOCK LED still reflects confidence for mic/unquantized sampler.</string>
+    <string name="placeholder_scratch">Scratch pad: Y = playback position, X = volume</string>
+    <string name="scratch_y_axis">Y axis: playback position</string>
+    <string name="scratch_x_axis">X axis: volume (left quiet → right loud)</string>
+    <string name="fx_scratch_volume_curve">Scratch pad: X-axis volume curve</string>
+    <string name="eq_gain_legend">EQ −50…+24 dB (peaking)</string>
+    <string name="fx_route_on">FX ROUTE: effects bus</string>
+    <string name="fx_route_off">FX ROUTE: bypass</string>
+    <string name="rev_on">REV: backward</string>
+    <string name="rev_off">REV: forward</string>
+    <string name="delay_feed_on">DELAY send: ON</string>
+    <string name="delay_feed_off">DELAY send: OFF (tail)</string>
+    <string name="flanger_on">FLANGER: ON</string>
+    <string name="flanger_off">FLANGER: OFF</string>
+    <string name="reverb_on">REVERB: ON</string>
+    <string name="reverb_off">REVERB: OFF</string>
+    <string name="tape_wow_on">TAPE WOW: ON</string>
+    <string name="tape_wow_off">TAPE WOW: OFF</string>
+    <string name="submenu_scroll_hint">Scroll the panel (right edge) to reach all settings.</string>
+    <string name="menu_system_hint">System panel: reserve for diagnostics and non-performance controls.</string>
+    <string name="bpm_tap">TAP BPM</string>
+    <string name="bpm_auto_follow">Follow AUTO BPM</string>
+    <string name="menu_audio">MENU AUDIO</string>
+    <string name="menu_bpm">MENU BPM</string>
+    <string name="menu_sampler">MENU SAMPLER</string>
+    <string name="menu_fx">MENU FX</string>
+    <string name="menu_library">MENU LIBRARY</string>
+    <string name="menu_system">MENU SYSTEM</string>
+    <string name="keep_screen_while_open">Keep screen awake while this app is in the foreground</string>
+    <string name="load_wav_from_storage">LOAD WAV (device / SD)</string>
+</resources>

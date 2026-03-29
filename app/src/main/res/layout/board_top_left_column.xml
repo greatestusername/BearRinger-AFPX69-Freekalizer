@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phone: BPM block first; scroll when the top strip is shorter than content. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbarStyle="outsideOverlay"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/bpm_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="120"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_bpm_value"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/bpm_auto_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_column"
+                    android:text="AUTO"
+                    android:textColor="@color/accent_led_cyan"
+                    android:textSize="@dimen/text_bpm_auto"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_sm"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/bpm_tap"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_zone"
+                    android:text="@string/bpm_tap"
+                    android:textColor="@color/accent_led_cyan"
+                    android:textSize="@dimen/text_label" />
+
+                <CheckBox
+                    android:id="@+id/bpm_auto_follow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_column"
+                    android:text="@string/bpm_auto_follow"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_label" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/bpm_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_xs"
+                android:textColor="@color/text_muted"
+                android:textSize="@dimen/text_small"
+                tools:text="auto 119 | confidence 67% | beat lock: strong" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_sm"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IN"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_input_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_led_group"
+                    android:text="OUT"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_output_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+
+                <TextView
+                    android:id="@+id/meter_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_led_group"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/text_label"
+                    tools:text="IN 24% OUT 31%" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_sm"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="REC"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_rec_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_bpm_led"
+                    android:text="CLIP"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_clip_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_bpm_led"
+                    android:text="BPM LOCK"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_bpm_lock_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_bpm_led"
+                    android:text="FX ROUTE"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_small" />
+
+                <View
+                    android:id="@+id/led_fx_route_state"
+                    android:layout_width="@dimen/led_size"
+                    android:layout_height="@dimen/led_size"
+                    android:layout_marginStart="@dimen/gap_md"
+                    android:background="@color/led_off" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

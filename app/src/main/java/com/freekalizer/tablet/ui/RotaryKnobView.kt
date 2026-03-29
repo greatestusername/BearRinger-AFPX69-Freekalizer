@@ -2,6 +2,7 @@ package com.freekalizer.tablet.ui
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.RadialGradient
@@ -66,6 +67,26 @@ class RotaryKnobView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
 
+    private val bpmBeatPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+
+    /** When true, draws a small centered BPM beat dot (see [bpmBeatPulseNorm]). */
+    private var showBpmBeatIndicator: Boolean = false
+
+    private var bpmBeatPulseBacking: Float = 0f
+
+    /**
+     * Beat flash 0..1 for the optional center dot (Cutoff knob only). Does nothing if the indicator is off.
+     */
+    var bpmBeatPulseNorm: Float
+        get() = bpmBeatPulseBacking
+        set(v) {
+            if (!showBpmBeatIndicator) return
+            val n = v.coerceIn(0f, 1f)
+            if (n == bpmBeatPulseBacking) return
+            bpmBeatPulseBacking = n
+            invalidate()
+        }
+
     /** Major tick every N segments along the value arc. */
     private val tickSegmentCount = 45
 
@@ -73,6 +94,7 @@ class RotaryKnobView @JvmOverloads constructor(
         val a = context.obtainStyledAttributes(attrs, R.styleable.RotaryKnobView, defStyleAttr, 0)
         maxProgress = max(1, a.getInt(R.styleable.RotaryKnobView_maxValue, 1000))
         internalProgress = a.getInt(R.styleable.RotaryKnobView_knobProgress, 0).coerceIn(0, maxProgress)
+        showBpmBeatIndicator = a.getBoolean(R.styleable.RotaryKnobView_showBpmBeatIndicator, false)
         a.recycle()
         gestureDetector = GestureDetector(
             context,
@@ -209,6 +231,14 @@ class RotaryKnobView @JvmOverloads constructor(
             notchPaint
         )
         canvas.restore()
+
+        if (showBpmBeatIndicator && bpmBeatPulseBacking > 0.02f) {
+            val pulse = bpmBeatPulseBacking
+            val alpha = (255f * (0.35f + 0.65f * pulse)).toInt().coerceIn(0, 255)
+            bpmBeatPaint.color = Color.argb(alpha, 0xC6, 0x28, 0x28)
+            val dotR = dp(2.6f + 1.6f * pulse)
+            canvas.drawCircle(cx, cy, dotR, bpmBeatPaint)
+        }
     }
 
     /** Clockwise degrees from 12 o’clock for fraction `t` in [0,1] along the value arc. */

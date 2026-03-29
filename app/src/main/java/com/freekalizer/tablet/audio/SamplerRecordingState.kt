@@ -28,8 +28,11 @@ data class SamplerRecordingState(
     val isShotActive: Boolean,
     /** Best-effort loop playhead from the audio thread; `-1` when not looping. */
     val loopPlayheadFrame: Int,
+    /** Wrapped fractional loop position `0..1` when `>= 0` (smoother than frame index); `-1` when invalid. */
+    val loopPlayheadFraction: Float,
     /** Best-effort SHOT playhead while held; `-1` when SHOT is inactive. */
     val shotPlayheadFrame: Int,
+    val shotPlayheadFraction: Float,
     val samplerFxRoute: SamplerFxRouteIntent,
     val isReversePlayback: Boolean,
     /** E3 main pitch knob (-50..+50); **pitch-only** on FX bus. */

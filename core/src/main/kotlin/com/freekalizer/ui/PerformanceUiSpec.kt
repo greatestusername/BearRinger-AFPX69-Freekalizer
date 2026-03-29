@@ -47,6 +47,10 @@ data class PerformanceUiSpec(
 )
 
 object Dfx69TabletUiBlueprint {
+    /**
+     * Logical blueprint for the performance board. Physical sizing is platform-specific: the Android app
+     * scales margins, type, SeekBars, and on-board rotary filter controls via `values/` vs `values-sw600dp/`.
+     */
     val mvp: PerformanceUiSpec = PerformanceUiSpec(
         orientation = UiOrientation.PORTRAIT,
         zones = listOf(

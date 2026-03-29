@@ -11,10 +11,10 @@
         android:id="@+id/board_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="12dp"
+        android:layout_margin="@dimen/board_margin_outer"
         android:background="@drawable/bg_zone_panel"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="@dimen/board_padding"
         android:layout_above="@+id/menu_row">
 
         <TextView
@@ -23,204 +23,29 @@
             android:gravity="center"
             android:text="@string/app_name"
             android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:textSize="@dimen/title_text_size"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/zone_spacing"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:orientation="horizontal"
-            android:padding="6dp">
+            android:padding="@dimen/zone_padding_compact">
+
+            <include
+                android:id="@+id/board_top_left_column"
+                layout="@layout/board_top_left_column"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.6" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1.6"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="IN"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_input_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="OUT"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_output_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-
-                    <TextView
-                        android:id="@+id/meter_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:textColor="@color/text_primary"
-                        android:textSize="11sp"
-                        tools:text="IN 24% OUT 31%" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="REC"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_rec_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="CLIP"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_clip_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="BPM LOCK"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_bpm_lock_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="FX ROUTE"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
-
-                    <View
-                        android:id="@+id/led_fx_route_state"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="4dp"
-                        android:background="@color/led_off" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/bpm_value"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="120"
-                        android:textColor="@color/text_primary"
-                        android:textSize="28sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/bpm_auto_indicator"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="AUTO"
-                        android:textColor="@color/accent_led_cyan"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/bpm_tap"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@drawable/bg_button_zone"
-                        android:text="@string/bpm_tap"
-                        android:textColor="@color/accent_led_cyan"
-                        android:textSize="11sp" />
-
-                    <CheckBox
-                        android:id="@+id/bpm_auto_follow"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/bpm_auto_follow"
-                        android:textColor="@color/text_primary"
-                        android:textSize="11sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/bpm_status"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="@color/text_muted"
-                    android:textSize="10sp"
-                    tools:text="auto 119 | confidence 67% | beat lock: strong" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/margin_column"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:orientation="vertical">
@@ -231,14 +56,14 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:textColor="@color/text_primary"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/text_label"
                     tools:text="MASTER PITCH: 0%" />
 
                 <SeekBar
                     android:id="@+id/master_pitch_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="64dp"
+                    android:minHeight="@dimen/seek_pitch_min_height"
                     android:max="100"
                     android:progress="50"
                     android:progressTint="@color/accent_led_cyan" />
@@ -247,18 +72,18 @@
                     android:id="@+id/master_pitch_reset"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/pitch_block_margin_top"
                     android:background="@drawable/bg_button_zone"
                     android:text="@string/pitch_reset_zero"
                     android:textAllCaps="false"
                     android:textColor="@color/text_muted"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/text_small" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/margin_column"
                 android:layout_weight="0.9"
                 android:gravity="center"
                 android:orientation="vertical">
@@ -270,13 +95,13 @@
                     android:gravity="center"
                     android:text="@string/label_input_gain"
                     android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
+                    android:textSize="@dimen/text_label" />
 
                 <SeekBar
                     android:id="@+id/input_gain_front_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/seek_gain_min_height"
                     android:max="2000"
                     android:progress="0"
                     android:progressTint="@color/accent_led_cyan" />
@@ -285,17 +110,17 @@
                     android:id="@+id/main_mix_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="@dimen/zone_spacing"
                     android:gravity="center"
                     android:text="@string/fx_mix"
                     android:textColor="@color/text_muted"
-                    android:textSize="11sp" />
+                    android:textSize="@dimen/text_label" />
 
                 <SeekBar
                     android:id="@+id/main_mix_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/seek_gain_min_height"
                     android:max="1000"
                     android:progress="800"
                     android:progressTint="@color/accent_led_cyan" />
@@ -305,12 +130,12 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/zone_spacing"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="@dimen/zone_padding_comfort">
 
             <Button
                 android:id="@+id/rec_quantized"
@@ -320,12 +145,12 @@
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/rec_quantized"
                 android:textColor="@color/text_primary"
-                android:textSize="11sp" />
+                android:textSize="@dimen/text_label" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="@dimen/spacing_control"
                 android:layout_weight="1.2"
                 android:gravity="center"
                 android:orientation="vertical">
@@ -341,17 +166,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
                     android:text="@string/play_stop"
                     android:textColor="@color/accent_led_cyan"
-                    android:textSize="11sp" />
+                    android:textSize="@dimen/text_label" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="@dimen/spacing_control"
                 android:layout_weight="1.2"
                 android:orientation="vertical">
 
@@ -360,25 +185,33 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/fx_route_off"
-                    android:textOn="@string/fx_route_on" />
+                    android:textOn="@string/fx_route_on"
+                    android:textSize="@dimen/text_effect_toggle" />
 
                 <ToggleButton
                     android:id="@+id/rev_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/rev_off"
-                    android:textOn="@string/rev_on" />
+                    android:textOn="@string/rev_on"
+                    android:textSize="@dimen/text_effect_toggle" />
 
                 <com.freekalizer.tablet.ui.TransportGridProgressView
                     android:id="@+id/transport_grid_progress"
                     android:layout_width="match_parent"
-                    android:layout_height="28dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_height="@dimen/transport_progress_height"
+                    android:layout_marginTop="@dimen/zone_spacing"
                     android:visibility="gone" />
             </LinearLayout>
 
@@ -386,23 +219,23 @@
                 android:id="@+id/shot_button"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="@dimen/spacing_control"
                 android:layout_weight="0.9"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/shot_hold"
                 android:textAllCaps="false"
                 android:textColor="@color/text_primary"
-                android:textSize="11sp" />
+                android:textSize="@dimen/text_label" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/zone_spacing"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="@dimen/zone_padding_comfort">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -415,14 +248,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_primary"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/text_label"
                     tools:text="SAMPLE PITCH: 0%" />
 
                 <SeekBar
                     android:id="@+id/sample_pitch_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="64dp"
+                    android:minHeight="@dimen/seek_pitch_min_height"
                     android:max="100"
                     android:progress="50"
                     android:progressTint="@color/accent_led_cyan" />
@@ -431,18 +264,18 @@
                     android:id="@+id/sample_pitch_reset"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/pitch_block_margin_top"
                     android:background="@drawable/bg_button_zone"
                     android:text="@string/pitch_reset_zero"
                     android:textAllCaps="false"
                     android:textColor="@color/text_muted"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/text_small" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/margin_column"
                 android:layout_weight="1.12"
                 android:orientation="vertical">
 
@@ -453,13 +286,13 @@
                     android:maxLines="1"
                     android:text="@string/eq_gain_legend"
                     android:textColor="@color/text_muted"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/text_small" />
 
                 <SeekBar
                     android:id="@+id/eq_low_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="56dp"
+                    android:minHeight="@dimen/seek_eq_min_height"
                     android:max="1000"
                     android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
@@ -468,7 +301,7 @@
                     android:id="@+id/eq_mid_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="56dp"
+                    android:minHeight="@dimen/seek_eq_min_height"
                     android:max="1000"
                     android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
@@ -477,7 +310,7 @@
                     android:id="@+id/eq_high_seek"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:minHeight="56dp"
+                    android:minHeight="@dimen/seek_eq_min_height"
                     android:max="1000"
                     android:progress="600"
                     android:progressTint="@color/accent_led_cyan" />
@@ -486,7 +319,7 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/margin_column"
                 android:layout_weight="1.2"
                 android:gravity="bottom"
                 android:orientation="vertical">
@@ -500,37 +333,37 @@
                         android:id="@+id/eq_low_kill"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="@dimen/eq_kill_button_gap"
                         android:layout_weight="1"
                         android:background="@drawable/bg_button_zone"
                         android:text="@string/eq_low"
                         android:textAllCaps="false"
                         android:textColor="@color/accent_led_cyan"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/text_small" />
 
                     <Button
                         android:id="@+id/eq_mid_kill"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="@dimen/eq_kill_button_gap"
                         android:layout_weight="1"
                         android:background="@drawable/bg_button_zone"
                         android:text="@string/eq_mid"
                         android:textAllCaps="false"
                         android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/text_small" />
 
                     <Button
                         android:id="@+id/eq_high_kill"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="@dimen/eq_kill_button_gap"
                         android:layout_weight="1"
                         android:background="@drawable/bg_button_zone"
                         android:text="@string/eq_high"
                         android:textAllCaps="false"
                         android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/text_small" />
 
                     <Button
                         android:id="@+id/eq_kill_all"
@@ -541,7 +374,7 @@
                         android:text="@string/eq_kill"
                         android:textAllCaps="false"
                         android:textColor="@color/text_muted"
-                        android:textSize="10sp" />
+                        android:textSize="@dimen/text_small" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -550,11 +383,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/zone_spacing"
             android:layout_weight="2"
             android:background="@drawable/bg_button_zone"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="@dimen/zone_padding_comfort">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -569,44 +402,53 @@
                     android:layout_height="wrap_content"
                     android:text="@string/fx_filter_cutoff"
                     android:textColor="@color/text_primary"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_knob_title"
                     android:textStyle="bold" />
 
                 <com.freekalizer.tablet.ui.RotaryKnobView
                     android:id="@+id/filter_cutoff_seek"
-                    android:layout_width="152dp"
-                    android:layout_height="152dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_width="@dimen/knob_cutoff_size"
+                    android:layout_height="@dimen/knob_cutoff_size"
+                    android:layout_marginTop="@dimen/gap_sm"
                     app:knobProgress="550"
-                    app:maxValue="1000" />
+                    app:maxValue="1000"
+                    app:showBpmBeatIndicator="true" />
 
                 <ToggleButton
                     android:id="@+id/delay_feed_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/delay_feed_off"
-                    android:textOn="@string/delay_feed_on" />
+                    android:textOn="@string/delay_feed_on"
+                    android:textSize="@dimen/text_effect_toggle" />
 
                 <ToggleButton
                     android:id="@+id/tape_wow_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/tape_wow_off"
-                    android:textOn="@string/tape_wow_on" />
+                    android:textOn="@string/tape_wow_on"
+                    android:textSize="@dimen/text_effect_toggle" />
             </LinearLayout>
 
             <FrameLayout
                 android:id="@+id/scratch_surface"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginStart="@dimen/margin_column"
+                android:layout_marginEnd="@dimen/margin_column"
                 android:layout_weight="2.2"
                 android:background="@drawable/bg_zone_panel"
                 android:clickable="true"
@@ -624,26 +466,26 @@
                     android:gravity="center"
                     android:text="@string/placeholder_scratch"
                     android:textColor="@color/text_muted"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/scratch_placeholder_text" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|start"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="@dimen/margin_column"
+                    android:layout_marginTop="@dimen/zone_spacing"
                     android:text="@string/scratch_y_axis"
                     android:textColor="@color/text_muted"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/scratch_axis_text" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|center_horizontal"
-                    android:layout_marginBottom="6dp"
+                    android:layout_marginBottom="@dimen/zone_spacing"
                     android:text="@string/scratch_x_axis"
                     android:textColor="@color/text_muted"
-                    android:textSize="10sp" />
+                    android:textSize="@dimen/scratch_axis_text" />
             </FrameLayout>
 
             <LinearLayout
@@ -659,14 +501,14 @@
                     android:layout_height="wrap_content"
                     android:text="@string/fx_filter_resonance"
                     android:textColor="@color/text_primary"
-                    android:textSize="12sp"
+                    android:textSize="@dimen/text_knob_title"
                     android:textStyle="bold" />
 
                 <com.freekalizer.tablet.ui.RotaryKnobView
                     android:id="@+id/filter_resonance_seek"
-                    android:layout_width="108dp"
-                    android:layout_height="108dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_width="@dimen/knob_resonance_size"
+                    android:layout_height="@dimen/knob_resonance_size"
+                    android:layout_marginTop="@dimen/gap_sm"
                     app:knobProgress="250"
                     app:maxValue="1000" />
 
@@ -674,94 +516,102 @@
                     android:id="@+id/flanger_bypass_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/flanger_off"
-                    android:textOn="@string/flanger_on" />
+                    android:textOn="@string/flanger_on"
+                    android:textSize="@dimen/text_effect_toggle" />
 
                 <ToggleButton
                     android:id="@+id/reverb_toggle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="@dimen/gap_sm"
                     android:background="@drawable/bg_button_zone"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAllCaps="false"
                     android:textColor="@color/text_primary"
                     android:textOff="@string/reverb_off"
-                    android:textOn="@string/reverb_on" />
+                    android:textOn="@string/reverb_on"
+                    android:textSize="@dimen/text_effect_toggle" />
             </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/zone_spacing"
             android:layout_weight="0.7"
             android:background="@drawable/bg_button_zone"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+            android:paddingStart="@dimen/filter_row_padding_h"
+            android:paddingEnd="@dimen/filter_row_padding_h">
 
             <Button
                 android:id="@+id/filter_lp_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/eq_kill_button_gap"
                 android:layout_weight="1"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/fx_filter_lp"
                 android:textAllCaps="false"
                 android:textColor="@color/accent_led_cyan"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
 
             <Button
                 android:id="@+id/filter_bp_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/eq_kill_button_gap"
                 android:layout_weight="1"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/fx_filter_bp"
                 android:textAllCaps="false"
                 android:textColor="@color/text_muted"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
 
             <Button
                 android:id="@+id/filter_hp_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/eq_kill_button_gap"
                 android:layout_weight="1"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/fx_filter_hp"
                 android:textAllCaps="false"
                 android:textColor="@color/text_muted"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
 
             <Button
                 android:id="@+id/filter_mode_auto"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/eq_kill_button_gap"
                 android:layout_weight="1"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/fx_filter_mode_auto"
                 android:textAllCaps="false"
                 android:textColor="@color/text_muted"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
 
             <Button
                 android:id="@+id/filter_mode_lfo"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/eq_kill_button_gap"
                 android:layout_weight="1"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/fx_filter_mode_lfo"
                 android:textAllCaps="false"
                 android:textColor="@color/text_muted"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
 
             <Button
                 android:id="@+id/filter_mode_manual"
@@ -772,7 +622,7 @@
                 android:text="@string/fx_filter_mode_manual"
                 android:textAllCaps="false"
                 android:textColor="@color/accent_led_cyan"
-                android:textSize="10sp" />
+                android:textSize="@dimen/text_small" />
         </LinearLayout>
     </LinearLayout>
 
@@ -780,9 +630,9 @@
         android:id="@+id/menu_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginStart="@dimen/menu_row_margin_h"
+        android:layout_marginEnd="@dimen/menu_row_margin_h"
+        android:layout_marginBottom="@dimen/menu_row_margin_b"
         android:layout_alignParentBottom="true"
         android:gravity="center"
         android:orientation="horizontal">
@@ -791,61 +641,61 @@
             android:id="@+id/menu_audio"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="@dimen/eq_kill_button_gap"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:text="@string/menu_audio"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
 
         <Button
             android:id="@+id/menu_bpm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="@dimen/eq_kill_button_gap"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:text="@string/menu_bpm"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
 
         <Button
             android:id="@+id/menu_sampler"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="@dimen/eq_kill_button_gap"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:text="@string/menu_sampler"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
 
         <Button
             android:id="@+id/menu_fx"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="@dimen/eq_kill_button_gap"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:text="@string/menu_fx"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
 
         <Button
             android:id="@+id/menu_library"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="@dimen/eq_kill_button_gap"
             android:layout_weight="1"
             android:background="@drawable/bg_button_zone"
             android:text="@string/menu_library"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
 
         <Button
             android:id="@+id/menu_system"
@@ -856,7 +706,7 @@
             android:text="@string/menu_system"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            android:textSize="10sp" />
+            android:textSize="@dimen/text_small" />
     </LinearLayout>
 
     <View
@@ -871,10 +721,10 @@
         android:id="@+id/submenu_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="18dp"
+        android:layout_margin="@dimen/submenu_margin"
         android:background="@drawable/bg_zone_panel"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="@dimen/submenu_padding"
         android:visibility="gone">
 
         <Button
@@ -889,10 +739,10 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/gap_sm"
             android:text="@string/submenu_scroll_hint"
             android:textColor="@color/text_muted"
-            android:textSize="11sp" />
+            android:textSize="@dimen/text_label" />
 
         <ScrollView
             android:layout_width="match_parent"
@@ -901,7 +751,7 @@
             android:fadeScrollbars="false"
             android:fillViewport="true"
             android:scrollbarAlwaysDrawVerticalTrack="true"
-            android:scrollbarSize="6dp"
+            android:scrollbarSize="@dimen/scrollbar_submenu"
             android:scrollbarStyle="outsideOverlay"
             android:scrollbarThumbVertical="@drawable/scrollbar_thumb_submenu"
             android:scrollbarTrackVertical="@drawable/scrollbar_track_submenu"
@@ -916,7 +766,7 @@
             android:id="@+id/panel_audio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:orientation="vertical">
 
             <TextView
@@ -930,7 +780,7 @@
                 android:id="@+id/request_mic"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/grant_mic"
                 android:textAllCaps="false"
@@ -940,21 +790,21 @@
                 android:id="@+id/input_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:popupBackground="@color/surface_zone" />
 
             <Spinner
                 android:id="@+id/output_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:popupBackground="@color/surface_zone" />
 
             <Button
                 android:id="@+id/start_monitoring"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/start_monitoring"
                 android:textColor="@color/accent_led_cyan" />
@@ -963,7 +813,7 @@
                 android:id="@+id/stop_monitoring"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/stop_monitoring"
                 android:textColor="@color/text_primary" />
@@ -972,16 +822,25 @@
                 android:id="@+id/route_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_panel" />
+
+            <CheckBox
+                android:id="@+id/keep_screen_while_open"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/submenu_section_gap"
+                android:text="@string/keep_screen_while_open"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_panel" />
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/panel_bpm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -990,13 +849,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/bpm_auto_follow_help"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_panel" />
 
             <Button
                 android:id="@+id/bpm_default"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/bpm_default_120"
                 android:textColor="@color/text_muted" />
@@ -1006,7 +865,7 @@
             android:id="@+id/panel_sampler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -1020,7 +879,7 @@
                 android:id="@+id/rec_free"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/rec_free"
                 android:textColor="@color/text_primary" />
@@ -1029,7 +888,7 @@
                 android:id="@+id/rec_free_stop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/end_free_rec"
                 android:textColor="@color/text_muted" />
@@ -1038,23 +897,23 @@
                 android:id="@+id/recording_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_panel" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="@dimen/pitch_block_margin_top"
                 android:text="Master pitch span (±12 / ±24 / ±50)"
                 android:textColor="@color/text_muted"
-                android:textSize="11sp" />
+                android:textSize="@dimen/text_label" />
 
             <Spinner
                 android:id="@+id/master_pitch_range_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
         </LinearLayout>
 
@@ -1062,17 +921,17 @@
             android:id="@+id/panel_fx"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:orientation="vertical"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:text="FILTER SETTINGS"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_panel"
                 android:textStyle="bold" />
 
             <TextView
@@ -1100,7 +959,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="500"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1116,17 +975,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="1000"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="DELAY SETTINGS"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_panel"
                 android:textStyle="bold" />
 
             <TextView
@@ -1139,7 +998,7 @@
                 android:id="@+id/delay_beats_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
 
             <TextView
@@ -1153,7 +1012,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="600"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1168,17 +1027,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="350"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="FLANGER SETTINGS"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_panel"
                 android:textStyle="bold" />
 
             <TextView
@@ -1191,7 +1050,7 @@
                 android:id="@+id/flanger_lfo_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
 
             <SeekBar
@@ -1199,7 +1058,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="400"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1208,7 +1067,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="350"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1217,7 +1076,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="500"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1226,17 +1085,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="52dp"
+                android:minHeight="@dimen/seek_submenu_tall_min_height"
                 android:progress="450"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="@string/fx_reverb_section"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_panel"
                 android:textStyle="bold" />
 
             <TextView
@@ -1249,7 +1108,7 @@
                 android:id="@+id/reverb_space_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
 
             <TextView
@@ -1263,7 +1122,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/seek_submenu_short_min_height"
                 android:progress="550"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1278,17 +1137,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/seek_submenu_short_min_height"
                 android:progress="200"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="@string/fx_tape_section"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_panel"
                 android:textStyle="bold" />
 
             <TextView
@@ -1302,7 +1161,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/seek_submenu_short_min_height"
                 android:progress="400"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1317,7 +1176,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/seek_submenu_short_min_height"
                 android:progress="450"
                 android:progressTint="@color/accent_led_cyan" />
 
@@ -1332,14 +1191,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="1000"
-                android:minHeight="48dp"
+                android:minHeight="@dimen/seek_submenu_short_min_height"
                 android:progress="420"
                 android:progressTint="@color/accent_led_cyan" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="@string/fx_scratch_feel"
                 android:textColor="@color/text_muted" />
 
@@ -1347,13 +1206,27 @@
                 android:id="@+id/scratch_preset_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/submenu_section_gap"
+                android:text="@string/fx_scratch_volume_curve"
+                android:textColor="@color/text_muted" />
+
+            <Spinner
+                android:id="@+id/scratch_volume_curve_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_sm"
+                android:popupBackground="@color/surface_zone" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/submenu_section_gap"
                 android:text="@string/fx_order_mode"
                 android:textColor="@color/text_muted" />
 
@@ -1361,7 +1234,7 @@
                 android:id="@+id/fx_order_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:popupBackground="@color/surface_zone" />
         </LinearLayout>
 
@@ -1369,7 +1242,7 @@
             android:id="@+id/panel_library"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -1387,23 +1260,32 @@
                 android:id="@+id/save_sample_library"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/save_sample_library"
                 android:textColor="@color/accent_led_cyan" />
+
+            <Button
+                android:id="@+id/load_wav_from_storage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gap_sm"
+                android:background="@drawable/bg_button_zone"
+                android:text="@string/load_wav_from_storage"
+                android:textColor="@color/text_primary" />
 
             <Spinner
                 android:id="@+id/library_spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="@dimen/zone_spacing"
                 android:popupBackground="@color/surface_zone" />
 
             <Button
                 android:id="@+id/load_sample_library"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:text="@string/load_sample_library"
                 android:textColor="@color/text_primary" />
@@ -1412,7 +1294,7 @@
                 android:id="@+id/library_favorite_toggle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:background="@drawable/bg_button_zone"
                 android:textColor="@color/text_primary"
                 android:textOff="@string/library_favorite_off"
@@ -1422,7 +1304,7 @@
                 android:id="@+id/library_rename_field"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:hint="@string/library_rename_hint"
                 android:importantForAutofill="no"
                 android:inputType="textCapWords"
@@ -1432,14 +1314,14 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/library_rename_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="@dimen/eq_kill_button_gap"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button_zone"
                     android:text="@string/library_rename_apply"
@@ -1459,16 +1341,16 @@
                 android:id="@+id/library_status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="@dimen/gap_sm"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="@dimen/text_panel" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/panel_system"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/submenu_section_gap"
             android:text="@string/menu_system_hint"
             android:textColor="@color/text_muted"
             android:visibility="gone" />

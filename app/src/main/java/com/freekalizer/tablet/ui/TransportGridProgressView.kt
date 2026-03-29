@@ -106,9 +106,16 @@ class TransportGridProgressView @JvmOverloads constructor(
             if (beatSec > 0.0) {
                 val totalBeats = ceil(durationSec / beatSec).toInt().coerceAtLeast(1)
                 val beatsPerLoop = (loopBars * 4).coerceAtLeast(4)
-                gridMinor.strokeWidth = max(1f, h * 0.06f)
-                gridBar.strokeWidth = max(1.5f, h * 0.09f)
-                gridLoop.strokeWidth = max(2f, h * 0.11f)
+                // Light strokes read on dark cyan fill; recording mode uses orange fill with grid off.
+                gridMinor.color = ContextCompat.getColor(context, R.color.background_app)
+                gridMinor.alpha = 255
+                gridBar.color = ContextCompat.getColor(context, R.color.surface_zone)
+                gridBar.alpha = 255
+                gridLoop.color = ContextCompat.getColor(context, R.color.overload)
+                gridLoop.alpha = 255
+                gridMinor.strokeWidth = max(1.1f, h * 0.065f)
+                gridBar.strokeWidth = max(1.8f, h * 0.095f)
+                gridLoop.strokeWidth = max(2.4f, h * 0.12f)
                 for (i in 1 until totalBeats) {
                     val t = i * beatSec
                     val x = (t / durationSec).toFloat() * w

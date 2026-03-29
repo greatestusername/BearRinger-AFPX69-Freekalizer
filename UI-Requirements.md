@@ -4,6 +4,8 @@ Outcome
 
 Create a hardware-faithful portrait UI that matches UI-Layout-Draft-Ascii-Art.txt while preserving existing audio control behavior in MainActivity. The surface keeps only performance-critical controls visible; detailed/secondary controls move to submenu panels launched from dedicated buttons in empty board areas. **No scrolling on the main performance board.** Dense submenus (especially **MENU FX**) may scroll inside the modal sheet so every parameter—including FX chain order—stays reachable on portrait tablets.
 
+**Narrow / phone layouts:** When **smallest width &lt; 600dp**, the app uses **compact** dimensions and shorter strings (`values/` + `values-sw600dp/` overrides for tablets): tighter board margins, smaller SeekBars and rotary knobs, reduced type sizes, and abbreviated menu / toggle labels so weighted zones are less likely to clip controls. Tablets and large portrait devices keep the original comfortable spacing and full copy.
+
 Current Baseline (what to leverage)
 
 
@@ -28,7 +30,7 @@ Define this mapping explicitly in docs and implement 1:1 in view IDs/names:
 
 
 
-Top strip: IN LEVEL, OVERLOAD, BPM readout, MASTER PITCH knob/value, DRY/WET knob, beat-division indicator LEDs.
+Top strip: IN LEVEL, OVERLOAD, BPM readout, MASTER PITCH knob/value, DRY/WET knob, beat-division indicator LEDs. **Beat indicator:** small **red pulse dot** drawn in the **center** of the filter **Cutoff** rotary knob (does not use a separate overlay view, so the knob stays one touch target).
 
 
 
@@ -44,7 +46,7 @@ Filter strip (lower-mid): filter type LEDs (LP/BP/HP), mode LEDs (AUTO/LFO/MANUA
 
 
 
-Bottom zone: dominant scratch wheel, with DELAY ON (and momentary) and FLANGER ON (and momentary) buttons near wheel.
+Bottom zone: dominant scratch wheel (Y adds signed **extra** loop/SHOT phase on top of normal varispeed plus FX-ring scrub, X volume; **finger still** pauses phase; idle after MOVE zeros scrub target), with DELAY ON (and momentary) and FLANGER ON (and momentary) buttons near wheel.
 
 
 
@@ -78,7 +80,7 @@ Submenu assignments for “not in ASCII” details
 
 
 
-Audio menu: device input/output spinners, mic permission action, route diagnostics text.
+Audio menu: device input/output spinners, mic permission action, route diagnostics text, **Keep screen on while app is open** (optional; persisted; prevents sleep while the activity is foregrounded when enabled).
 
 
 
@@ -94,7 +96,7 @@ FX menu: advanced delay/flanger/filter numeric controls (beats/depth/feedback/we
 
 
 
-Library menu: save/load/rename/delete/favorite flows and sample metadata management.
+Library menu: **SAVE to library** / **LOAD from library** (app-private `filesDir` clips), **LOAD WAV** (system file picker → PCM16 WAV from device/SD/cloud via SAF; loads sampler with **loop playback on**), rename/delete/favorite, optional save name, and status line for library operations.
 
 
 

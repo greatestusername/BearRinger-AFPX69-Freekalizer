@@ -155,7 +155,7 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 - Flanger with BPM-relative timing and manual modulation.
 - Delay/echo with BPM-related timing values. Echo continue when effect is turned off (for momentary triggering). settable bar/beat divisions for delay/echo time
   - NEW: Feedback setting knob for Delay/Echo in sub menu
-- Scratch effect via large touch wheel gesture.
+- Scratch effect via large touch wheel gesture; while a finger is **down** and not scrubbing vertically, **sampler loop/SHOT phase** pauses so the loop does not advance under the “needle”; **Y** scrubs via platter rate into the FX scratch ring; **X** is volume. A short **post-move idle** on the pad zeros scrub target so “finger still” is detected without extra MOVE events.
 - 3-band EQ + kill style behavior buttons (LOW/MID/HIGH); band faders **−50 dB .. +24 dB** (kill uses fader minimum).
 
 ### FR-5 BPM Counter
@@ -165,13 +165,15 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 - With **Follow AUTO BPM** on, while **PLAY/SHOT** drives the sampler (input monitor ducked), feed the **sampler premaster mix** (post–sample-pitch, pre–master-pitch/FX) into the same onset estimator so tempo can lock from the playing loop when the mic path is silent.
 - Tap BPM manual mode.
 - Show BPM confidence/failure state when beat cannot be detected (live % + lock hint in UI).
+- Main BPM readout shows a **beat-synchronized visual pulse** on the **numeric text only** (blend toward accent cyan at the beat — no extra views, no layout change).
 
 ### FR-6 Sample Save/Load Library
 
 - Save sample audio + metadata to local storage.
 - Reload saved samples into active sampler.
+- Import **PCM 16-bit LE WAV** from **device-accessible storage** (files app, SD card, cloud providers, etc.) via the system file picker (**Storage Access Framework**); no broad storage read permission required. Imported clips load into the sampler with **continuous loop playback enabled** (unlike **LOAD from library**, which leaves loop off until the user presses **PLAY/STOP**).
 - Metadata: name, date, BPM at record time, duration, reverse state, pitch values.
-- Manage samples: rename/delete/favorite/load wav/mp3.
+- Manage samples: rename/delete/favorite; internal library is WAV + JSON. External import is WAV-only today (mp3 decoding remains future work).
 - Persist library across app restarts.
 
 ---
@@ -186,6 +188,10 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 ### NFR-2 Stability
 
 - No crashes on route changes, app pause/resume, or screen rotation.
+
+### NFR-3 Display / session (optional)
+
+- **MENU AUDIO** may offer **Keep screen on while app is open** (persisted preference; uses `FLAG_KEEP_SCREEN_ON` while enabled and the activity is foregrounded) for long performance sessions.
 - Graceful handling of unplug/replug and permission changes.
 
 ### NFR-3 Performance
@@ -331,7 +337,7 @@ Stories:
 - `E4-S2` (P1, done) Implement Filter modes (LFO/Manual/Auto) + resonance. (Adds `FilterMode` in `core`; Android maps cutoff on a log knob, resonance→Q, implements LFO (BPM-related beat period + depth) and AUTO (input-envelope follower + depth); updates biquad coefficients on the audio callback without per-callback allocations; UI adds mode buttons + cutoff/resonance + LFO rate/depth + AUTO depth.)
 - `E4-S3` (P1, done) Implement Delay with BPM-based timing. (`DelayBeatMath` + `InterleavedFeedbackDelay` in `core`; FX-bus echo after filter before master pitch; beat divisions 1/4–4 beats from internal BPM; **send OFF** stops new input while feedback tail decays; UI: send toggle + beats + feedback + wet; tests for beat→frames + line.)
 - `E4-S4` (P1, done) Implement Flanger with timing/modulation controls. (`StereoFlanger` variable-delay feed-forward comb in `core`; `FlangerBeatMath` LFO Hz from beats/cycle vs internal BPM; FX order filter→delay→**flanger**→master pitch; **OFF** bypasses comb while ring/LFO advance; UI: ON toggle + LFO period + base/sweep/manual/wet sliders; tests for LFO math + bypass + engaged delta energy.)
-- `E4-S5` (P2, done) Implement Scratch mode gesture + rolling buffer. (`ScratchRingBuffer` in `core`; post-delay tap on FX bus; fractional read lag; vertical drag on performance surface; `ScratchRingBufferTest`.)
+- `E4-S5` (P2, done) Implement Scratch mode gesture + rolling buffer. (`ScratchRingBuffer` in `core`; post-delay tap on FX bus; fractional read lag; vertical drag; `ScratchRingBufferTest`. **Hold + scrub:** hold freezes phase when scrub target ~0; while scrubbing, **additive** signed phase step per sample on top of varispeed (replaces the mistaken “scrub-only” step that killed audible playback). Ring lag still applies.)
 - `E4-S6` (P2, done) Implement 3-band EQ + kill behavior. (`ShelfPeakingBiquad` + `ThreeBandStereoEq` — low shelf / mid peaking / high shelf; post-sum output path; tap-to-cut LOW/MID/HIGH/KILL to fader minimum; band SeekBars **−50 .. +24 dB**; `ThreeBandStereoEqTest`.)
 
 Acceptance criteria:
@@ -372,11 +378,13 @@ Stories:
 - `E6-S2` (P0, done) Load sample into active sampler state. (**LOAD from library** spinner; WAV decode + resample to engine rate if needed; restores `loadPresetSample`, reverse, pitch SeekBars, stops loop; `bpmAtLastCapture` from file for DISPLAY context.)
 - `E6-S3` (P1, done) Rename/delete/favorite items. (`SavedSampleMetadata.favorite` + JSON key; `SampleLibraryStore.renameClip` / `deleteClip` / `setFavorite`; spinner shows ★ prefix and favorites-first sort; **Rename** / **Delete** / favorite `ToggleButton`; clearing last-session id when deleted clip was restored target.)
 - `E6-S4` (P1, done) Persist latest session and restore on launch. (SharedPreferences `last_library_sample_id`; cold start loads that clip + metadata before falling back to preset drumloop; clears key if files missing.)
+- `E6-S5` (P0, done) **MENU LIBRARY → LOAD WAV** opens `ACTION_OPEN_DOCUMENT` (mime filter `audio/wav` + fallbacks + `*/*`); reads bytes via `ContentResolver`, decodes with portable `WavPcmIo`, resamples via `SampleLibraryStore.decodeWavBytesToSamplerBuffer` (shared with on-disk library loads), applies `loadPresetSample` with no quantized bar metadata (BPM from onset / current clock per existing load path); **clears** `last_library_sample_id` so cold start is not tied to a non-library URI; **enables loop playback** immediately after load.
 
 Acceptance criteria:
 
 - Saved samples survive app restarts and device reboot.
 - Loading sample restores audible result and core metadata.
+- User can pick a WAV from external storage and hear it as a **loop** without an extra transport step (after **Start monitoring** as usual).
 
 ---
 
@@ -386,7 +394,7 @@ Goal: touch-first live performance interface.
 
 Stories:
 
-- `E7-S1` (P1, partially-done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android portrait board + modal submenus in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; **MENU FX** / other dense panels scroll inside the modal so all controls stay reachable; main performance surface stays non-scrolling.)
+- `E7-S1` (P1, partially-done) Build tablet layout with dedicated sections. (Blueprint + `ManualLabels` in `core`; Android portrait board + modal submenus in `activity_main.xml` with DFX-style dark/silver/cyan styling, view binding, meters + routing + sampler controls grouped; **MENU FX** / other dense panels scroll inside the modal so all controls stay reachable; main performance surface stays non-scrolling. **Responsive:** `values/dimens.xml` + `values-sw600dp/dimens.xml` and matching `strings.xml` overrides shrink touch targets, spacing, and copy on **smallest width &lt; 600dp** phones while preserving the tablet layout on large portrait screens.)
 - `E7-S2` (P1, done) Implement large controls and press/hold interactions. (Main board now uses larger touch targets for performative controls and explicit press/hold feedback: `SHOT` and EQ kill buttons are highlighted live while held; scratch surface remains dominant and hold-safe.)
 - `E7-S3` (P1, todo) Verify Layout UI
 - `E7-S4` (P1, done) Add clear state indicators (recording, clipping, bpm lock, fx route). (Dedicated board LED row added for `REC`, `CLIP`, `BPM LOCK`, `FX ROUTE`, refreshed on the existing 100 ms UI ticker from live engine state.)
@@ -535,7 +543,14 @@ Defer:
 - `2026-03-27` - **Bar-accurate BPM:** `LoopBpmMath` derives tempo from loop frames × `QuantizedBars` (4/4); `loadPresetSample` and **Follow AUTO** while **PLAY/SHOT** use **base BPM × Sample Pitch** so detected/heard BPM tracks varispeed; unquantized clips still use onset estimators; `lastQuantizedBars` always replaced on load (clears when null).
 - `2026-03-27` - **Product identity:** user-facing name **Freekalizer AFPX69** (`app_name` launcher label / recents); vector launcher icon (concentric cyan rings + eye); backlog/README/UI-Requirements/ARCHITECTURE/`backup-requirements.md` use the same naming (package id unchanged: `com.freekalizer.tablet`).
 - `2026-03-28` - **Repo automation:** added GitHub Actions **PR checks** (`test` + `:app:assembleDebug`) and manual **Build and release APK** (artifact + optional GitHub Release); `.github/CODEOWNERS` for `@greatestusername`; `docs/GITHUB_GOVERNANCE.md` documents branch protection and review settings; README/UI-Requirements naming cleanup (DFX69 / Freekalizer AFPX69, relative backlog link).
+- `2026-03-28` - **Compact phone UI:** `activity_main.xml` now references shared `@dimen/*` resources with **default (phone)** vs **`sw600dp` (tablet)** buckets; shorter default strings for menus, toggles, scratch hints, and BPM help with full copy restored on large screens; README typo fix (Behringer **DFX69**, not “Tweakalizer”).
+- `2026-03-29` - **E6-S5 / FR-6:** **MENU LIBRARY** adds **LOAD WAV** (storage picker) for PCM16 WAV import from device/SD/cloud; `SampleLibraryStore` centralizes WAV→`SamplerBuffer` decode/resample; `applyLoadedSampleFromMetadata(..., loopPlaybackAfterLoad)` — library restore/load leaves loop off; external import turns loop on and clears persisted last-library id; docs (README, UI-Requirements, ARCHITECTURE, DEVICE_MATRIX, `backup-requirements.md`) updated.
+- `2026-03-29` - **BPM pulse + scratch hold + keep-awake:** first pass used a pulse **ring** view and ring-only lag math — reverted for layout/audio correctness. **Current:** BPM beat pulse = **text color blend** on `bpm_value` only (`MainActivity.updateBpmPulseUi`, no extra layout). **MENU AUDIO** **Keep screen on while app is open** unchanged (`FLAG_KEEP_SCREEN_ON`). **Scratch hold:** `SamplerLoopPlayer` phase freeze + `MainActivity` `postDelayed` zero vertical target after last MOVE; engine `setPhaseAdvanceScratchHold` when `scratchRateTarget` near zero; `SamplerLoopPlayerTest.phaseAdvanceScratchHoldRepeatsSameLoopFrame`.
+</think>
 
+
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+Read
 # RULES FOR CURSOR / CLAUDE / LLM
 - FOLLOW AUDIO DEVELOPER BEST PRACTICES FOR TABLETS DO NOT SLOP IT UP AND DON'T CREATE A BUNCH OF DUPLICATION!
 - Do not make up or lie about solutions. If you are unsure ask or search the web for context

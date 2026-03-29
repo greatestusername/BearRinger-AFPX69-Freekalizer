@@ -1,24 +1,31 @@
 package com.freekalizer.tablet
 
 import android.Manifest
+import android.content.ContentResolver
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.VelocityTracker
 import android.view.View
+import android.view.WindowManager
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.exp
 import kotlin.math.roundToInt
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
+import android.provider.OpenableColumns
 import com.freekalizer.audio.WavPcmIo
 import com.freekalizer.sampler.QuantizedBars
 import com.freekalizer.sampler.SamplerFxRouteIntent
@@ -32,6 +39,7 @@ import com.freekalizer.tablet.audio.SamplerCaptureKind
 import com.freekalizer.tablet.audio.SamplerRecordingState
 import com.freekalizer.tablet.audio.AndroidAudioEngineController.FxOrderMode
 import com.freekalizer.tablet.audio.AndroidAudioEngineController.ScratchFeelPreset
+import com.freekalizer.tablet.audio.AndroidAudioEngineController.ScratchVolumeCurve
 import com.freekalizer.tablet.databinding.ActivityMainBinding
 import com.freekalizer.tablet.library.SampleLibraryStore
 import com.freekalizer.effects.FilterType
@@ -40,7 +48,15 @@ import com.freekalizer.effects.ThreeBandStereoEq
 import com.freekalizer.ui.ManualLabels
 
 class MainActivity : AppCompatActivity() {
+
+    private val openWavDocumentLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) importWavFromContentUri(uri)
+    }
+
     private lateinit var binding: ActivityMainBinding
+    private val boardTopLeft get() = binding.boardTopLeftColumn
     private lateinit var repo: AudioDeviceRepository
     private lateinit var sampleLibrary: SampleLibraryStore
     private var libraryEntries: List<SampleLibraryStore.Entry> = emptyList()
@@ -59,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
     private var suppressEqSeek: Boolean = false
 
-    private var scratchLastY: Float = 0f
+    private var scratchVelocityTracker: VelocityTracker? = null
     private var shotHeld: Boolean = false
 
     /** Kill buttons: toggle between fader minimum ([ThreeBandStereoEq.MIN_DB]) and 0 dB. */
@@ -75,6 +91,7 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             updateMeterUi()
             updateBpmUi()
+            updateBpmPulseUi()
             updatePitchLabels()
             updateRecordingUi()
             updateEqUi()
@@ -143,6 +160,13 @@ class MainActivity : AppCompatActivity() {
         "Smooth (long throw)" to ScratchFeelPreset.SMOOTH,
         "Classic vinyl" to ScratchFeelPreset.CLASSIC,
         "Cut / aggressive" to ScratchFeelPreset.CUT
+    )
+
+    private val scratchVolumeCurveItems: List<Pair<String, ScratchVolumeCurve>> = listOf(
+        "Linear (full width)" to ScratchVolumeCurve.LINEAR,
+        "Wide cut (left 55% = mute)" to ScratchVolumeCurve.WIDE_CUT_LEFT,
+        "Soft taper (quiet left)" to ScratchVolumeCurve.SOFT_TAPER,
+        "Early full (loud sooner)" to ScratchVolumeCurve.EARLY_FULL
     )
     private val fxOrderItems: List<Pair<String, FxOrderMode>> = listOf(
         "Scratch → Dly/Flg → Filter → Tape/Wow → Reverb" to FxOrderMode.SCRATCH_FX_FILTER_TAPE_REVERB,
@@ -271,21 +295,23 @@ class MainActivity : AppCompatActivity() {
         updateReverbTapeUi()
         bindInputGainControl()
         bindScratchPresetControls()
+        bindScratchVolumeCurveControls()
         bindFxOrderControls()
         bindEqControls()
         updateEqUi()
         bindScratchSurface()
         bindDoubleTapResets()
         bindSubmenuControls()
+        bindKeepScreenWhileOpen()
         bindSampleLibraryUi()
         refreshLibrarySpinner()
 
-        binding.bpmAutoFollow.isChecked = engineController.isBpmAutoFollowEnabled()
-        binding.bpmAutoFollow.setOnCheckedChangeListener { _, checked ->
+        boardTopLeft.bpmAutoFollow.isChecked = engineController.isBpmAutoFollowEnabled()
+        boardTopLeft.bpmAutoFollow.setOnCheckedChangeListener { _, checked ->
             engineController.setBpmAutoFollowEnabled(checked)
             updateBpmUi()
         }
-        binding.bpmTap.setOnClickListener {
+        boardTopLeft.bpmTap.setOnClickListener {
             val sec = SystemClock.elapsedRealtime() / 1000.0
             engineController.tapTempoNow(sec)
             updateBpmUi()
@@ -329,6 +355,38 @@ class MainActivity : AppCompatActivity() {
         binding.panelFx.visibility = View.GONE
         binding.panelLibrary.visibility = View.GONE
         binding.panelSystem.visibility = View.GONE
+    }
+
+    private fun bindKeepScreenWhileOpen() {
+        val prefs = getSharedPreferences(SESSION_PREFS, Context.MODE_PRIVATE)
+        var suppressListener = false
+        binding.keepScreenWhileOpen.setOnCheckedChangeListener { _, checked ->
+            if (suppressListener) return@setOnCheckedChangeListener
+            prefs.edit().putBoolean(KEY_KEEP_SCREEN_WHILE_OPEN, checked).apply()
+            applyKeepScreenWhileOpen(checked)
+        }
+        suppressListener = true
+        binding.keepScreenWhileOpen.isChecked = prefs.getBoolean(KEY_KEEP_SCREEN_WHILE_OPEN, false)
+        suppressListener = false
+        applyKeepScreenWhileOpen(binding.keepScreenWhileOpen.isChecked)
+    }
+
+    private fun applyKeepScreenWhileOpen(enabled: Boolean) {
+        if (enabled) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    /** Beat flash: red dot drawn in the center of the filter Cutoff rotary knob. */
+    private fun updateBpmPulseUi() {
+        val bpm = engineController.currentBpm().coerceIn(40.0, 280.0)
+        val periodMs = (60000.0 / bpm).coerceAtLeast(1.0)
+        val phase = ((SystemClock.elapsedRealtime() % periodMs.toLong()).toDouble() / periodMs).toFloat()
+        val x = (1f - phase).coerceIn(0f, 1f)
+        val intensity = exp(-x * 7.0).toFloat()
+        binding.filterCutoffSeek.bpmBeatPulseNorm = intensity
     }
 
     private fun bindFilterControls() {
@@ -649,6 +707,29 @@ class MainActivity : AppCompatActivity() {
         if (idx >= 0) binding.scratchPresetSpinner.setSelection(idx, false)
     }
 
+    private fun bindScratchVolumeCurveControls() {
+        val prefs = getSharedPreferences(SESSION_PREFS, Context.MODE_PRIVATE)
+        binding.scratchVolumeCurveSpinner.adapter = spinnerAdapter(scratchVolumeCurveItems.map { it.first })
+        var suppressCurveSpinner = false
+        binding.scratchVolumeCurveSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (suppressCurveSpinner) return
+                val curve = scratchVolumeCurveItems.getOrNull(position)?.second ?: ScratchVolumeCurve.LINEAR
+                engineController.setScratchVolumeCurve(curve)
+                prefs.edit().putInt(KEY_SCRATCH_VOLUME_CURVE, curve.ordinal).apply()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        val savedOrd = prefs.getInt(KEY_SCRATCH_VOLUME_CURVE, ScratchVolumeCurve.LINEAR.ordinal)
+        val saved = ScratchVolumeCurve.entries.firstOrNull { it.ordinal == savedOrd } ?: ScratchVolumeCurve.LINEAR
+        engineController.setScratchVolumeCurve(saved)
+        suppressCurveSpinner = true
+        val cidx = scratchVolumeCurveItems.indexOfFirst { it.second == saved }
+        if (cidx >= 0) binding.scratchVolumeCurveSpinner.setSelection(cidx, false)
+        suppressCurveSpinner = false
+    }
+
     private fun bindFxOrderControls() {
         binding.fxOrderSpinner.adapter = spinnerAdapter(fxOrderItems.map { it.first })
         binding.fxOrderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -828,23 +909,47 @@ class MainActivity : AppCompatActivity() {
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     v.parent.requestDisallowInterceptTouchEvent(true)
-                    scratchLastY = e.y
+                    scratchVelocityTracker?.recycle()
+                    scratchVelocityTracker = VelocityTracker.obtain().also { it.addMovement(e) }
                     engineController.setScratchTouchActive(true)
-                    pushScratchAxes(e, v, 0f)
+                    pushScratchMotionFromVelocity(v, e.x, 0f)
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    val dyNorm = ((e.y - scratchLastY) / v.height.toFloat()).coerceIn(-1f, 1f)
-                    scratchLastY = e.y
-                    pushScratchAxes(e, v, dyNorm)
+                    val tracker = scratchVelocityTracker ?: return@setOnTouchListener true
+                    tracker.addMovement(e)
+                    tracker.computeCurrentVelocity(1000)
+                    var vy = tracker.yVelocity
+                    if (e.historySize > 0) {
+                        val hi = e.historySize - 1
+                        val hy = e.getHistoricalY(hi)
+                        val ht = e.getHistoricalEventTime(hi).toLong().coerceAtLeast(1L)
+                        val dt = (e.eventTime - ht).coerceAtLeast(1L)
+                        val est = ((e.y - hy) / dt.toFloat()) * 1000f
+                        vy = vy * 0.35f + est * 0.65f
+                    }
+                    pushScratchMotionFromVelocity(v, e.x, vy)
                 }
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL -> {
+                    scratchVelocityTracker?.recycle()
+                    scratchVelocityTracker = null
                     v.parent.requestDisallowInterceptTouchEvent(false)
                     engineController.setScratchTouchActive(false)
                 }
             }
             true
         }
+    }
+
+    /**
+     * [velocityY] px/s (Android): positive = finger moving down — same sign convention as per-frame dyNorm
+     * (positive down → engine applies backward loop motion via [AndroidAudioEngineController.setScratchTouchAxes]).
+     */
+    private fun pushScratchMotionFromVelocity(v: View, xPx: Float, velocityY: Float) {
+        val w = v.width.coerceAtLeast(1)
+        val xn = (xPx / w.toFloat()).coerceIn(0f, 1f)
+        val motion = (velocityY / SCRATCH_VELOCITY_SCALE_PX_PER_SEC).coerceIn(-1f, 1f)
+        engineController.setScratchTouchAxes(xn, motion)
     }
 
     private fun bindDoubleTapResets() {
@@ -929,6 +1034,13 @@ class MainActivity : AppCompatActivity() {
         meterHandler.post(meterTicker)
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::binding.isInitialized) {
+            applyKeepScreenWhileOpen(binding.keepScreenWhileOpen.isChecked)
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         hideSubmenu()
@@ -936,6 +1048,8 @@ class MainActivity : AppCompatActivity() {
         shotHeld = false
         engineController.setShotPressed(false)
         engineController.setScratchTouchActive(false)
+        scratchVelocityTracker?.recycle()
+        scratchVelocityTracker = null
         meterHandler.removeCallbacks(meterTicker)
         repo.stop()
     }
@@ -997,10 +1111,11 @@ class MainActivity : AppCompatActivity() {
         }
         val autoSrc =
             if (state.isPlaybackLooping || state.isShotActive) "sample" else "input"
-        binding.bpmValue.text = bpm.toInt().toString()
-        binding.bpmAutoIndicator.text = mode
+        boardTopLeft.bpmValue.text = bpm.toInt().toString()
+        boardTopLeft.bpmValue.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        boardTopLeft.bpmAutoIndicator.text = mode
         val autoColor = if (autoOn) R.color.led_auto_on else R.color.overload
-        binding.bpmAutoIndicator.setTextColor(ContextCompat.getColor(this, autoColor))
+        boardTopLeft.bpmAutoIndicator.setTextColor(ContextCompat.getColor(this, autoColor))
         val followHint = when {
             !autoOn -> "follow off — enable Follow AUTO BPM"
             !engineLive -> "engine stopped — tap Start Monitoring"
@@ -1008,7 +1123,7 @@ class MainActivity : AppCompatActivity() {
                 "listening… raise confidence (play loop, beat-heavy audio, or tap TAP BPM)"
             else -> null
         }
-        binding.bpmStatus.text = buildString {
+        boardTopLeft.bpmStatus.text = buildString {
             append("auto ${auto.bpm.toInt()} ($autoSrc) | confidence $confPct% | $lockHint")
             if (followHint != null) {
                 append(" | ")
@@ -1019,9 +1134,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateMeterUi() {
         val meter = engineController.meterSnapshot()
-        binding.meterStatus.text = "IN ${toPercent(meter.inputPeak)}%  OUT ${toPercent(meter.outputPeak)}%"
-        renderLed(binding.ledInputState, meter.inputPeak, meter.inputClipping)
-        renderLed(binding.ledOutputState, meter.outputPeak, meter.outputClipping)
+        boardTopLeft.meterStatus.text = "IN ${toPercent(meter.inputPeak)}%  OUT ${toPercent(meter.outputPeak)}%"
+        renderLed(boardTopLeft.ledInputState, meter.inputPeak, meter.inputClipping)
+        renderLed(boardTopLeft.ledOutputState, meter.outputPeak, meter.outputClipping)
     }
 
     private fun updatePerformanceStateLeds() {
@@ -1035,22 +1150,22 @@ class MainActivity : AppCompatActivity() {
             else -> 0f
         }
         renderLed(
-            view = binding.ledRecState,
+            view = boardTopLeft.ledRecState,
             peak = if (state.isRecording) 1f else 0f,
             clipping = state.isRecording
         )
         renderLed(
-            view = binding.ledClipState,
+            view = boardTopLeft.ledClipState,
             peak = if (meter.inputClipping || meter.outputClipping) 1f else 0f,
             clipping = meter.inputClipping || meter.outputClipping
         )
         renderLed(
-            view = binding.ledBpmLockState,
+            view = boardTopLeft.ledBpmLockState,
             peak = bpmLockStrength,
             clipping = false
         )
         renderLed(
-            view = binding.ledFxRouteState,
+            view = boardTopLeft.ledFxRouteState,
             peak = if (state.samplerFxRoute == SamplerFxRouteIntent.THROUGH_EFFECTS_PATH) 1f else 0f,
             clipping = false
         )
@@ -1070,11 +1185,6 @@ class MainActivity : AppCompatActivity() {
             if (eqKillAllLatched || eqHighKillLatched) active else idle
         )
         binding.eqKillAll.setTextColor(if (eqKillAllLatched) active else idle)
-    }
-
-    private fun pushScratchAxes(e: MotionEvent, v: View, dyNorm: Float) {
-        val xn = (e.x / v.width.toFloat()).coerceIn(0f, 1f)
-        engineController.setScratchTouchAxes(xn, dyNorm)
     }
 
     private fun renderLed(view: View, peak: Float, clipping: Boolean) {
@@ -1102,6 +1212,10 @@ class MainActivity : AppCompatActivity() {
         val remainRecSec = (totalRecSec - elapsedRecSec).coerceAtLeast(0.0)
         val loadedDurSec = framesToSeconds(state.loadedFrameCount, sr)
         val playheadSec = when {
+            state.isPlaybackLooping && state.loopPlayheadFraction >= 0f && state.loadedFrameCount > 0 ->
+                loadedDurSec * state.loopPlayheadFraction.toDouble()
+            state.isShotActive && state.shotPlayheadFraction >= 0f && state.loadedFrameCount > 0 ->
+                loadedDurSec * state.shotPlayheadFraction.toDouble()
             state.loopPlayheadFrame >= 0 && state.loadedFrameCount > 0 ->
                 framesToSeconds(state.loopPlayheadFrame, sr)
             state.shotPlayheadFrame >= 0 && state.loadedFrameCount > 0 ->
@@ -1241,12 +1355,20 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             (state.isPlaybackLooping || state.isShotActive) && hasSample && state.loadedFrameCount > 0 -> {
-                val ph = when {
-                    state.isPlaybackLooping && state.loopPlayheadFrame >= 0 -> state.loopPlayheadFrame
-                    state.shotPlayheadFrame >= 0 -> state.shotPlayheadFrame
-                    else -> 0
-                }
-                val n = (ph.toFloat() / state.loadedFrameCount).coerceIn(0f, 1f)
+                val n = when {
+                    state.isPlaybackLooping && state.loopPlayheadFraction >= 0f ->
+                        state.loopPlayheadFraction
+                    state.isShotActive && state.shotPlayheadFraction >= 0f ->
+                        state.shotPlayheadFraction
+                    else -> {
+                        val ph = when {
+                            state.isPlaybackLooping && state.loopPlayheadFrame >= 0 -> state.loopPlayheadFrame
+                            state.shotPlayheadFrame >= 0 -> state.shotPlayheadFrame
+                            else -> 0
+                        }
+                        (ph.toFloat() / state.loadedFrameCount).coerceIn(0f, 1f)
+                    }
+                }.coerceIn(0f, 1f)
                 binding.transportGridProgress.visibility = View.VISIBLE
                 binding.transportGridProgress.setTransportState(
                     progressNormalized = n,
@@ -1404,6 +1526,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun bindSampleLibraryUi() {
         binding.saveSampleLibrary.setOnClickListener { saveCurrentSampleToLibrary() }
+        binding.loadWavFromStorage.setOnClickListener {
+            openWavDocumentLauncher.launch(
+                arrayOf("audio/wav", "audio/x-wav", "audio/wave", "*/*")
+            )
+        }
         binding.loadSampleLibrary.setOnClickListener { loadSelectedLibrarySample() }
         binding.libraryFavoriteToggle.setOnCheckedChangeListener { _, checked ->
             if (suppressFavoriteToggle) return@setOnCheckedChangeListener
@@ -1564,7 +1691,7 @@ class MainActivity : AppCompatActivity() {
         val id = libraryEntries[idx].id
         try {
             val (buf, meta) = sampleLibrary.loadBufferAndMetadata(id)
-            applyLoadedSampleFromMetadata(buf, meta)
+            applyLoadedSampleFromMetadata(buf, meta, loopPlaybackAfterLoad = false)
             persistLastLibrarySampleId(id)
             binding.libraryStatus.text = "Loaded: ${meta.name}"
             updatePitchLabels()
@@ -1573,7 +1700,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyLoadedSampleFromMetadata(buf: SamplerBuffer, meta: SavedSampleMetadata) {
+    private fun applyLoadedSampleFromMetadata(
+        buf: SamplerBuffer,
+        meta: SavedSampleMetadata,
+        loopPlaybackAfterLoad: Boolean = false
+    ) {
         val bars = meta.quantizedBars?.let { q -> QuantizedBars.fromBarCount(q) }
         engineController.loadPresetSample(
             buffer = buf,
@@ -1586,8 +1717,58 @@ class MainActivity : AppCompatActivity() {
         syncMasterPitchSeekFromEngine()
         binding.samplePitchSeek.progress =
             (50 + meta.samplePitchPercent.roundToInt()).coerceIn(0, 100)
-        engineController.setLoopPlayback(false)
+        engineController.setLoopPlayback(loopPlaybackAfterLoad)
         binding.revToggle.isChecked = meta.reverse
+    }
+
+    /**
+     * MENU LIBRARY: import PCM16 WAV from user storage (SAF). Enables continuous loop playback
+     * so the file behaves as a performance loop without an extra PLAY tap when desired.
+     */
+    private fun importWavFromContentUri(uri: Uri) {
+        try {
+            val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                ?: run {
+                    binding.libraryStatus.text = "Could not read file."
+                    return
+                }
+            val buf = SampleLibraryStore.decodeWavBytesToSamplerBuffer(bytes)
+            val displayName = displayNameFromUri(uri) ?: "Imported WAV"
+            val state = engineController.recordingState()
+            val bpmHint = state.bpmAtLastCapture ?: state.recordingBpm
+            val sr = buf.sampleRateHz
+            val dur = if (sr > 0) buf.frameCount.toDouble() / sr else 0.0
+            val meta = SavedSampleMetadata(
+                name = displayName,
+                createdAtEpochMillis = System.currentTimeMillis(),
+                bpmAtRecord = bpmHint,
+                durationSeconds = dur,
+                reverse = false,
+                mainPitchPercent = state.mainPitchPercent,
+                samplePitchPercent = state.samplePitchPercent,
+                quantizedBars = null
+            )
+            applyLoadedSampleFromMetadata(buf, meta, loopPlaybackAfterLoad = true)
+            getSharedPreferences(SESSION_PREFS, Context.MODE_PRIVATE).edit()
+                .remove(KEY_LAST_LIBRARY_ID)
+                .apply()
+            binding.libraryStatus.text = "Loaded WAV (loop on): $displayName"
+            updatePitchLabels()
+        } catch (e: Exception) {
+            binding.libraryStatus.text =
+                "WAV import failed: ${e.message ?: e.javaClass.simpleName}"
+        }
+    }
+
+    private fun displayNameFromUri(uri: Uri): String? {
+        if (uri.scheme != ContentResolver.SCHEME_CONTENT) return null
+        val fromProvider = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+            ?.use { c ->
+                val idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (idx < 0 || !c.moveToFirst()) null
+                else c.getString(idx)?.trim()?.takeIf { it.isNotEmpty() }
+            }
+        return fromProvider ?: uri.lastPathSegment?.substringAfterLast('/')
     }
 
     private fun persistLastLibrarySampleId(id: String) {
@@ -1602,7 +1783,7 @@ class MainActivity : AppCompatActivity() {
             .getString(KEY_LAST_LIBRARY_ID, null) ?: return false
         return try {
             val (buf, meta) = sampleLibrary.loadBufferAndMetadata(id)
-            applyLoadedSampleFromMetadata(buf, meta)
+            applyLoadedSampleFromMetadata(buf, meta, loopPlaybackAfterLoad = false)
             binding.libraryStatus.text = "Restored: ${meta.name}"
             refreshLibrarySpinner()
             val idx = libraryEntries.indexOfFirst { it.id == id }
@@ -1621,5 +1802,9 @@ class MainActivity : AppCompatActivity() {
         private const val REQ_MIC = 1001
         private const val SESSION_PREFS = "freekalizer_session"
         private const val KEY_LAST_LIBRARY_ID = "last_library_sample_id"
+        private const val KEY_KEEP_SCREEN_WHILE_OPEN = "keep_screen_while_open"
+        private const val KEY_SCRATCH_VOLUME_CURVE = "scratch_volume_curve_ordinal"
+        /** px/s → normalized scratch motion; higher = calmer (+Y = down). */
+        private const val SCRATCH_VELOCITY_SCALE_PX_PER_SEC = 2800f
     }
 }

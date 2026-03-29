@@ -3,5 +3,6 @@
     <declare-styleable name="RotaryKnobView">
         <attr name="maxValue" format="integer" />
         <attr name="knobProgress" format="integer" />
+        <attr name="showBpmBeatIndicator" format="boolean" />
     </declare-styleable>
 </resources>

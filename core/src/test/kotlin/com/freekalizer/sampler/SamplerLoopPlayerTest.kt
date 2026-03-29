@@ -26,6 +26,57 @@ class SamplerLoopPlayerTest {
     }
 
     @Test
+    fun vinylMotorOffHandScratchMovesPlayheadBackward() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setLooping(true)
+        p.configureVinylScratch(
+            active = true,
+            rateTarget = -110f,
+            rateRange = 110f,
+            slewPerFrame = 1f,
+            sampleRateHz = 48_000,
+            maxSamplesPerSec = 48_000f
+        )
+        val out = FloatArray(2)
+        p.mixInto(out, outputChannels = 2, frameCount = 1)
+        // Motor off; norm -1 → -48000/48000 = -1 sample phase → wrap in 4-frame loop → index 3
+        assertEquals(3, p.publishedLoopPlayheadFrame)
+        p.configureVinylScratch(false, 0f, 110f, 1f, 48_000, 48_000f)
+    }
+
+    @Test
+    fun vinylMotorOffWhenHeldStillFreezesPhase() {
+        val buf = SamplerBuffer(
+            pcm = floatArrayOf(0.25f, -0.25f),
+            sampleRateHz = 48_000,
+            channels = 1
+        )
+        val p = SamplerLoopPlayer()
+        p.load(buf)
+        p.setLooping(true)
+        p.configureVinylScratch(
+            active = true,
+            rateTarget = 0f,
+            rateRange = 110f,
+            slewPerFrame = 1f,
+            sampleRateHz = 48_000,
+            maxSamplesPerSec = 48_000f
+        )
+        val out = FloatArray(4)
+        p.mixInto(out, outputChannels = 2, frameCount = 2)
+        assertEquals(0.25f, out[0])
+        assertEquals(0.25f, out[1])
+        assertEquals(0.25f, out[2])
+        assertEquals(0.25f, out[3])
+    }
+
+    @Test
     fun mixesOntoExistingOutput() {
         val buf = SamplerBuffer(
             pcm = floatArrayOf(0.5f, 0.5f),

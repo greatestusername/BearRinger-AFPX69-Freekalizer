@@ -39,6 +39,25 @@ class SamplerLoopPlayer {
     private var samplePitchMultiplier: Float = 1f
 
     /**
+     * Vinyl scratch: while [vinylScratchActive], sample **motor is off**; only hand rate (slewing toward
+     * [vinylRateTarget]) moves phase under the playhead. When inactive, normal [samplePitchMultiplier] motor.
+     */
+    @Volatile
+    private var vinylScratchActive: Boolean = false
+
+    @Volatile
+    private var vinylRateTarget: Float = 0f
+
+    @Volatile
+    private var vinylRateRange: Float = 110f
+
+    @Volatile
+    private var vinylSampleRate: Int = 48_000
+
+    @Volatile
+    private var vinylMaxSamplesPerSec: Float = 8800f
+
+    /**
      * Published from the audio thread after each [mixInto] mix pass for UI metering (best-effort).
      * `-1` when loop playback is off or there is no buffer.
      */
@@ -47,10 +66,22 @@ class SamplerLoopPlayer {
         private set
 
     /**
+     * Fractional loop position in `[0, 1)` from wrapped phase (smooth vs integer [publishedLoopPlayheadFrame]).
+     * `-1f` when invalid / not looping.
+     */
+    @Volatile
+    var publishedLoopPlayheadFraction: Float = -1f
+        private set
+
+    /**
      * Published from the audio thread after [mixShotInto] while SHOT is held; `-1` when SHOT is not active.
      */
     @Volatile
     var publishedShotPlayheadFrame: Int = -1
+        private set
+
+    @Volatile
+    var publishedShotPlayheadFraction: Float = -1f
         private set
 
     fun load(buffer: SamplerBuffer) {
@@ -62,7 +93,11 @@ class SamplerLoopPlayer {
         shotRewind = false
         reversePlayback = reverseRequested
         publishedLoopPlayheadFrame = -1
+        publishedLoopPlayheadFraction = -1f
         publishedShotPlayheadFrame = -1
+        publishedShotPlayheadFraction = -1f
+        vinylScratchActive = false
+        vinylRateTarget = 0f
     }
 
     fun clear() {
@@ -77,7 +112,11 @@ class SamplerLoopPlayer {
         reversePlayback = false
         samplePitchMultiplier = 1f
         publishedLoopPlayheadFrame = -1
+        publishedLoopPlayheadFraction = -1f
         publishedShotPlayheadFrame = -1
+        publishedShotPlayheadFraction = -1f
+        vinylScratchActive = false
+        vinylRateTarget = 0f
     }
 
     fun hasBuffer(): Boolean = pcm.isNotEmpty() && sampleChannels > 0
@@ -128,6 +167,26 @@ class SamplerLoopPlayer {
         return (m - 1f) * 100f
     }
 
+    /**
+     * Audio thread: configure vinyl scratch before [mixInto] / [mixShotInto] each burst.
+     * [rateTarget] / [rateRange] define normalized direction/speed (same semantics as engine scratch pad).
+     * [slewPerFrame] is ignored (kept for call-site stability); scrub follows [rateTarget] directly.
+     */
+    fun configureVinylScratch(
+        active: Boolean,
+        rateTarget: Float,
+        rateRange: Float,
+        @Suppress("UNUSED_PARAMETER") slewPerFrame: Float,
+        sampleRateHz: Int,
+        maxSamplesPerSec: Float
+    ) {
+        vinylScratchActive = active
+        vinylRateTarget = rateTarget
+        vinylRateRange = rateRange.coerceAtLeast(1f)
+        vinylSampleRate = sampleRateHz.coerceAtLeast(1)
+        vinylMaxSamplesPerSec = maxSamplesPerSec.coerceAtLeast(1f)
+    }
+
     private fun frameCount(): Int {
         if (sampleChannels <= 0) return 0
         return pcm.size / sampleChannels
@@ -175,6 +234,45 @@ class SamplerLoopPlayer {
         return wrapPhase(phase + delta, totalFrames)
     }
 
+    /**
+     * After each output sample: with finger on scratch pad, **motor off** — only hand-slew rate moves
+     * phase (up = forward in buffer, down = back). Finger up: varispeed motor only.
+     */
+    private fun advancePhaseAfterOutputSample(phase: Double, totalFrames: Int, rev: Boolean): Double {
+        if (!vinylScratchActive) {
+            return advancePhase(phase, totalFrames, rev)
+        }
+        // Direct mapping: engine [scratchRateTarget] is already in ±rateRange units; no extra slew here
+        // (UI uses VelocityTracker so the target is stable between touch events).
+        val range = vinylRateRange.toDouble().coerceAtLeast(1.0)
+        val norm = (vinylRateTarget.toDouble() / range).coerceIn(-1.0, 1.0)
+        val sr = vinylSampleRate.toDouble().coerceAtLeast(1.0)
+        val delta = norm * (vinylMaxSamplesPerSec.toDouble() / sr)
+        return wrapPhase(phase + delta, totalFrames)
+    }
+
+    private fun publishLoopPlayhead(phase: Double, totalFrames: Int) {
+        publishedLoopPlayheadFrame = normalizeFrameIndex(floor(phase).toInt(), totalFrames)
+        publishedLoopPlayheadFraction =
+            (wrapPhase(phase, totalFrames) / totalFrames.toDouble()).toFloat().coerceIn(0f, 1f)
+    }
+
+    private fun clearPublishedLoop() {
+        publishedLoopPlayheadFrame = -1
+        publishedLoopPlayheadFraction = -1f
+    }
+
+    private fun publishShotPlayhead(phase: Double, totalFrames: Int) {
+        publishedShotPlayheadFrame = normalizeFrameIndex(floor(phase).toInt(), totalFrames)
+        publishedShotPlayheadFraction =
+            (wrapPhase(phase, totalFrames) / totalFrames.toDouble()).toFloat().coerceIn(0f, 1f)
+    }
+
+    private fun clearPublishedShot() {
+        publishedShotPlayheadFrame = -1
+        publishedShotPlayheadFraction = -1f
+    }
+
     private val frameScratch = FloatArray(8)
 
     /**
@@ -182,22 +280,22 @@ class SamplerLoopPlayer {
      */
     fun mixInto(output: FloatArray, outputChannels: Int, frameCount: Int) {
         if (!looping) {
-            publishedLoopPlayheadFrame = -1
+            clearPublishedLoop()
             return
         }
         val totalFrames = frameCount()
         if (totalFrames <= 0 || outputChannels <= 0) {
-            publishedLoopPlayheadFrame = -1
+            clearPublishedLoop()
             return
         }
         val outNeeded = frameCount * outputChannels
         if (output.size < outNeeded) {
-            publishedLoopPlayheadFrame = -1
+            clearPublishedLoop()
             return
         }
 
         if (frameScratch.size < outputChannels) {
-            publishedLoopPlayheadFrame = -1
+            clearPublishedLoop()
             return
         }
 
@@ -209,10 +307,10 @@ class SamplerLoopPlayer {
             for (oc in 0 until outputChannels) {
                 output[dstBase + oc] += frameScratch[oc]
             }
-            phase = advancePhase(phase, totalFrames, rev)
+            phase = advancePhaseAfterOutputSample(phase, totalFrames, rev)
         }
         loopPhase = phase
-        publishedLoopPlayheadFrame = normalizeFrameIndex(floor(loopPhase).toInt(), totalFrames)
+        publishLoopPlayhead(loopPhase, totalFrames)
     }
 
     /**
@@ -220,17 +318,17 @@ class SamplerLoopPlayer {
      */
     fun mixShotInto(output: FloatArray, outputChannels: Int, frameCount: Int) {
         if (!shotPressed) {
-            publishedShotPlayheadFrame = -1
+            clearPublishedShot()
             return
         }
         val totalFrames = frameCount()
         if (totalFrames <= 0 || outputChannels <= 0) {
-            publishedShotPlayheadFrame = -1
+            clearPublishedShot()
             return
         }
         val outNeeded = frameCount * outputChannels
         if (output.size < outNeeded || frameScratch.size < outputChannels) {
-            publishedShotPlayheadFrame = -1
+            clearPublishedShot()
             return
         }
 
@@ -247,9 +345,9 @@ class SamplerLoopPlayer {
             for (oc in 0 until outputChannels) {
                 output[dstBase + oc] += frameScratch[oc]
             }
-            phase = advancePhase(phase, totalFrames, rev)
+            phase = advancePhaseAfterOutputSample(phase, totalFrames, rev)
         }
         shotPhase = phase
-        publishedShotPlayheadFrame = normalizeFrameIndex(floor(shotPhase).toInt(), totalFrames)
+        publishShotPlayhead(shotPhase, totalFrames)
     }
 }

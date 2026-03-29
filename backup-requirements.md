@@ -112,8 +112,9 @@ Deliver a performance-ready Android app that reproduces the DFX69-style real-tim
 
 - Save sample audio + metadata to local storage.
 - Reload saved samples into active sampler.
+- Import PCM16 WAV from user-visible storage (file picker / SAF): **MENU LIBRARY → LOAD WAV**; loop playback on after import.
 - Metadata: name, date, BPM at record time, duration, reverse state, pitch values.
-- Manage samples: rename/delete/favorite/load wav/mp3.
+- Manage samples: rename/delete/favorite; load internal library WAV; external WAV import as above; mp3 remains out of scope until added.
 - Persist library across app restarts.
 
 ---
@@ -314,11 +315,13 @@ Stories:
 - `E6-S2` (P0, todo) Load sample into active sampler state.
 - `E6-S3` (P1, todo) Rename/delete/favorite items.
 - `E6-S4` (P1, todo) Persist latest session and restore on launch.
+- `E6-S5` (P0, done in main app) **LOAD WAV** from storage (SAF): PCM16 import, loop on, clears last-library restore id.
 
 Acceptance criteria:
 
 - Saved samples survive app restarts and device reboot.
 - Loading sample restores audible result and core metadata.
+- External WAV pick loads as a performance loop (after monitoring started).
 
 ---
 

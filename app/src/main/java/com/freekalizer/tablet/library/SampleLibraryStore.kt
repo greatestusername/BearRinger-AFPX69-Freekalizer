@@ -124,20 +124,8 @@ class SampleLibraryStore(context: Context) {
         val metaFile = File(root, "$id$META_SUFFIX")
         require(wavFile.isFile) { "missing wav for $id" }
         require(metaFile.isFile) { "missing meta for $id" }
-        val decoded = WavPcmIo.decode(wavFile.readBytes())
+        val buffer = decodeWavBytesToSamplerBuffer(wavFile.readBytes())
         val meta = metadataFromJson(JSONObject(metaFile.readText()))
-        val targetSr = AndroidAudioDefaults.LOW_LATENCY_SAMPLE_RATE_HZ
-        val pcm = if (decoded.sampleRateHz == targetSr) {
-            decoded.interleavedFloat
-        } else {
-            PcmResampler.resampleInterleavedLinear(
-                decoded.interleavedFloat,
-                decoded.channels,
-                decoded.sampleRateHz,
-                targetSr
-            )
-        }
-        val buffer = SamplerBuffer(pcm = pcm, sampleRateHz = targetSr, channels = decoded.channels)
         return buffer to meta
     }
 
@@ -176,6 +164,26 @@ class SampleLibraryStore(context: Context) {
     }
 
     companion object {
+        /**
+         * Decode arbitrary PCM16 LE WAV bytes and resample to [AndroidAudioDefaults.LOW_LATENCY_SAMPLE_RATE_HZ]
+         * for the engine (shared with [loadBufferAndMetadata] and external file import).
+         */
+        fun decodeWavBytesToSamplerBuffer(wavBytes: ByteArray): SamplerBuffer {
+            val decoded = WavPcmIo.decode(wavBytes)
+            val targetSr = AndroidAudioDefaults.LOW_LATENCY_SAMPLE_RATE_HZ
+            val pcm = if (decoded.sampleRateHz == targetSr) {
+                decoded.interleavedFloat
+            } else {
+                PcmResampler.resampleInterleavedLinear(
+                    decoded.interleavedFloat,
+                    decoded.channels,
+                    decoded.sampleRateHz,
+                    targetSr
+                )
+            }
+            return SamplerBuffer(pcm = pcm, sampleRateHz = targetSr, channels = decoded.channels)
+        }
+
         private const val WAV_SUFFIX = ".wav"
         private const val META_SUFFIX = ".meta.json"
         private const val KEY_FORMAT = "format"

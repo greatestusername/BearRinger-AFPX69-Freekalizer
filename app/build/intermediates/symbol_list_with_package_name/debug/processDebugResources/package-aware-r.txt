@@ -247,6 +247,7 @@ attr selectableItemBackground
 attr selectableItemBackgroundBorderless
 attr shortcutMatchRequired
 attr showAsAction
+attr showBpmBeatIndicator
 attr showDividers
 attr showText
 attr showTitle
@@ -505,6 +506,8 @@ dimen abc_text_size_subhead_material
 dimen abc_text_size_subtitle_material_toolbar
 dimen abc_text_size_title_material
 dimen abc_text_size_title_material_toolbar
+dimen board_margin_outer
+dimen board_padding
 dimen compat_button_inset_horizontal_material
 dimen compat_button_inset_vertical_material
 dimen compat_button_padding_horizontal_material
@@ -514,6 +517,13 @@ dimen compat_notification_large_icon_max_height
 dimen compat_notification_large_icon_max_width
 dimen disabled_alpha_material_dark
 dimen disabled_alpha_material_light
+dimen eq_kill_button_gap
+dimen filter_row_padding_h
+dimen gap_lg
+dimen gap_md
+dimen gap_sm
+dimen gap_xl
+dimen gap_xs
 dimen highlight_alpha_material_colored
 dimen highlight_alpha_material_dark
 dimen highlight_alpha_material_light
@@ -521,6 +531,14 @@ dimen hint_alpha_material_dark
 dimen hint_alpha_material_light
 dimen hint_pressed_alpha_material_dark
 dimen hint_pressed_alpha_material_light
+dimen knob_cutoff_size
+dimen knob_resonance_size
+dimen led_size
+dimen margin_bpm_led
+dimen margin_column
+dimen margin_led_group
+dimen menu_row_margin_b
+dimen menu_row_margin_h
 dimen notification_action_icon_size
 dimen notification_action_text_size
 dimen notification_big_circle_margin
@@ -536,6 +554,27 @@ dimen notification_small_icon_size_as_large
 dimen notification_subtext_size
 dimen notification_top_pad
 dimen notification_top_pad_large_text
+dimen pitch_block_margin_top
+dimen scratch_axis_text
+dimen scratch_placeholder_text
+dimen scrollbar_submenu
+dimen seek_eq_min_height
+dimen seek_gain_min_height
+dimen seek_pitch_min_height
+dimen seek_submenu_short_min_height
+dimen seek_submenu_tall_min_height
+dimen spacing_control
+dimen submenu_margin
+dimen submenu_padding
+dimen submenu_section_gap
+dimen text_bpm_auto
+dimen text_bpm_value
+dimen text_effect_toggle
+dimen text_knob_title
+dimen text_label
+dimen text_panel
+dimen text_small
+dimen title_text_size
 dimen tooltip_corner_radius
 dimen tooltip_horizontal_padding
 dimen tooltip_margin
@@ -544,6 +583,10 @@ dimen tooltip_precise_anchor_threshold
 dimen tooltip_vertical_padding
 dimen tooltip_y_offset_non_touch
 dimen tooltip_y_offset_touch
+dimen transport_progress_height
+dimen zone_padding_comfort
+dimen zone_padding_compact
+dimen zone_spacing
 drawable abc_ab_share_pack_mtrl_alpha
 drawable abc_action_bar_item_background_material
 drawable abc_btn_borderless_material
@@ -725,6 +768,7 @@ id bar_spinner
 id beginning
 id blocking
 id board_root
+id board_top_left_column
 id bottom
 id bpm_auto_follow
 id bpm_auto_indicator
@@ -805,6 +849,7 @@ id input_gain_front_label
 id input_gain_front_seek
 id input_spinner
 id italic
+id keep_screen_while_open
 id led_bpm_lock_state
 id led_clip_state
 id led_fx_route_state
@@ -822,6 +867,7 @@ id line3
 id listMode
 id list_item
 id load_sample_library
+id load_wav_from_storage
 id main_mix_label
 id main_mix_seek
 id master_pitch_range_spinner
@@ -881,6 +927,7 @@ id save_sample_library
 id save_sample_name
 id scratch_preset_spinner
 id scratch_surface
+id scratch_volume_curve_spinner
 id screen
 id scrollIndicatorDown
 id scrollIndicatorUp
@@ -995,6 +1042,7 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
+layout board_top_left_column
 layout custom_dialog
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
@@ -1097,12 +1145,14 @@ string fx_reverb_wet
 string fx_route_off
 string fx_route_on
 string fx_scratch_feel
+string fx_scratch_volume_curve
 string fx_tape_flutter
 string fx_tape_mix
 string fx_tape_section
 string fx_tape_wow
 string grant_mic
 string hint_sample_save_name
+string keep_screen_while_open
 string label_free_rec_cap
 string label_input_device
 string label_input_gain
@@ -1117,6 +1167,7 @@ string library_favorite_on
 string library_rename_apply
 string library_rename_hint
 string load_sample_library
+string load_wav_from_storage
 string menu_audio
 string menu_bpm
 string menu_close
@@ -1538,7 +1589,7 @@ styleable MenuView android_windowAnimationStyle android_itemTextAppearance andro
 styleable PopupWindow android_popupBackground android_popupAnimationStyle overlapAnchor
 styleable PopupWindowBackgroundState state_above_anchor
 styleable RecycleListView paddingBottomNoButtons paddingTopNoTitle
-styleable RotaryKnobView knobProgress maxValue
+styleable RotaryKnobView knobProgress maxValue showBpmBeatIndicator
 styleable SearchView android_focusable android_maxWidth android_inputType android_imeOptions closeIcon commitIcon defaultQueryHint goIcon iconifiedByDefault layout queryBackground queryHint searchHintIcon searchIcon submitBackground suggestionRowLayout voiceIcon
 styleable Spinner android_entries android_popupBackground android_prompt android_dropDownWidth popupTheme
 styleable StateListDrawable android_dither android_visible android_variablePadding android_constantSize android_enterFadeDuration android_exitFadeDuration

@@ -2,6 +2,7 @@ R_DEF: Internal format may change without notice
 local
 attr? knobProgress
 attr? maxValue
+attr? showBpmBeatIndicator
 color accent_led_cyan
 color accent_led_dim
 color accent_meter_active
@@ -14,6 +15,48 @@ color overload
 color surface_zone
 color text_muted
 color text_primary
+dimen board_margin_outer
+dimen board_padding
+dimen eq_kill_button_gap
+dimen filter_row_padding_h
+dimen gap_lg
+dimen gap_md
+dimen gap_sm
+dimen gap_xl
+dimen gap_xs
+dimen knob_cutoff_size
+dimen knob_resonance_size
+dimen led_size
+dimen margin_bpm_led
+dimen margin_column
+dimen margin_led_group
+dimen menu_row_margin_b
+dimen menu_row_margin_h
+dimen pitch_block_margin_top
+dimen scratch_axis_text
+dimen scratch_placeholder_text
+dimen scrollbar_submenu
+dimen seek_eq_min_height
+dimen seek_gain_min_height
+dimen seek_pitch_min_height
+dimen seek_submenu_short_min_height
+dimen seek_submenu_tall_min_height
+dimen spacing_control
+dimen submenu_margin
+dimen submenu_padding
+dimen submenu_section_gap
+dimen text_bpm_auto
+dimen text_bpm_value
+dimen text_effect_toggle
+dimen text_knob_title
+dimen text_label
+dimen text_panel
+dimen text_small
+dimen title_text_size
+dimen transport_progress_height
+dimen zone_padding_comfort
+dimen zone_padding_compact
+dimen zone_spacing
 drawable bg_button_zone
 drawable bg_scratch_volume_gradient
 drawable bg_zone_panel
@@ -22,6 +65,7 @@ drawable scrollbar_thumb_submenu
 drawable scrollbar_track_submenu
 id bar_spinner
 id board_root
+id board_top_left_column
 id bpm_auto_follow
 id bpm_auto_indicator
 id bpm_default
@@ -70,6 +114,7 @@ id fx_route_toggle
 id input_gain_front_label
 id input_gain_front_seek
 id input_spinner
+id keep_screen_while_open
 id led_bpm_lock_state
 id led_clip_state
 id led_fx_route_state
@@ -83,6 +128,7 @@ id library_rename_field
 id library_spinner
 id library_status
 id load_sample_library
+id load_wav_from_storage
 id main_mix_label
 id main_mix_seek
 id master_pitch_range_spinner
@@ -124,6 +170,7 @@ id save_sample_library
 id save_sample_name
 id scratch_preset_spinner
 id scratch_surface
+id scratch_volume_curve_spinner
 id shot_button
 id start_monitoring
 id stop_monitoring
@@ -136,6 +183,7 @@ id tape_wow_seek
 id tape_wow_toggle
 id transport_grid_progress
 layout activity_main
+layout board_top_left_column
 layout spinner_dropdown_item_dark
 layout spinner_item_dark
 string app_name
@@ -190,12 +238,14 @@ string fx_reverb_wet
 string fx_route_off
 string fx_route_on
 string fx_scratch_feel
+string fx_scratch_volume_curve
 string fx_tape_flutter
 string fx_tape_mix
 string fx_tape_section
 string fx_tape_wow
 string grant_mic
 string hint_sample_save_name
+string keep_screen_while_open
 string label_free_rec_cap
 string label_input_device
 string label_input_gain
@@ -210,6 +260,7 @@ string library_favorite_on
 string library_rename_apply
 string library_rename_hint
 string load_sample_library
+string load_wav_from_storage
 string menu_audio
 string menu_bpm
 string menu_close
@@ -242,4 +293,4 @@ string zone_sampler
 string zone_top_status
 style Theme.Freekalizer
 style Widget.Freekalizer.SectionTitle
-styleable RotaryKnobView maxValue knobProgress
+styleable RotaryKnobView maxValue knobProgress showBpmBeatIndicator

@@ -48,4 +48,4 @@ Portable Kotlin logic:
 2. Effects engine (`E4`): filter / delay / scratch ring / flanger on the FX bus ahead of master pitch; monitor EQ on dry path before FX sum.
 3. Broaden BPM auto-detection (e.g. half-time/double-time disambiguation) without adding audio-thread allocations.
 
-The Android app already implements device enumeration, route rebind, sampler + pitch, tap/auto BPM UI, and file-backed sample library with rename/delete/favorite.
+The Android app already implements device enumeration, route rebind, sampler + pitch, tap/auto BPM UI, file-backed sample library with rename/delete/favorite, and **MENU LIBRARY** WAV import from user-selected storage (SAF) with shared `SampleLibraryStore.decodeWavBytesToSamplerBuffer` decode/resample.

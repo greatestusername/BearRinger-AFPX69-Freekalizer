@@ -223,8 +223,6 @@ class AndroidAudioEngineController(
     @Volatile
     private var scratchTouchActive: Boolean = false
 
-    private var scratchLagFrames: Float = 0f
-    private var scratchRateCurrent: Float = 0f
     private var scratchVolumeCurrent: Float = 1f
 
     @Volatile
@@ -235,6 +233,9 @@ class AndroidAudioEngineController(
 
     @Volatile
     private var scratchFeelPreset: ScratchFeelPreset = ScratchFeelPreset.CLASSIC
+
+    @Volatile
+    private var scratchVolumeCurve: ScratchVolumeCurve = ScratchVolumeCurve.LINEAR
 
     @Volatile
     private var fxOrderMode: FxOrderMode = FxOrderMode.SCRATCH_FX_FILTER_TAPE_REVERB
@@ -311,8 +312,6 @@ class AndroidAudioEngineController(
         /** Flanger ring buffer length in frames (short delay + sweep + margin). */
         private const val FLANGER_CAP_FRAMES: Int = 2048
 
-        /** Limit scratch lag range to a vinyl-like window with enough bidirectional headroom. */
-        private const val SCRATCH_MAX_LAG_SECONDS: Float = 1.5f
         /** Stability margin under Nyquist for cutoff calculations at the top end. */
         private const val FILTER_MAX_NYQUIST_RATIO: Float = 0.82f
 
@@ -355,6 +354,20 @@ class AndroidAudioEngineController(
         CUT
     }
 
+    /**
+     * Maps horizontal scratch-pad position (0 = left … 1 = right) to sampler scratch-bus gain.
+     */
+    enum class ScratchVolumeCurve {
+        /** 1:1 with touch X. */
+        LINEAR,
+        /** Left ~55% of width stays at zero gain; remaining ~45% ramps linearly to full. */
+        WIDE_CUT_LEFT,
+        /** Smooth curve: stays quiet longer on the left (power > 1). */
+        SOFT_TAPER,
+        /** Reaches high gain earlier from the left (power below 1). */
+        EARLY_FULL
+    }
+
     enum class MainPitchRangeMode {
         PERCENT_12,
         PERCENT_24,
@@ -381,6 +394,13 @@ class AndroidAudioEngineController(
         ScratchFeelPreset.CUT -> 150f
     }
 
+    /** Peak |dphase/dt| in sample-frames/s at full throw (motor off; needs ~realtime or faster for tight scratch). */
+    private fun vinylMaxSamplesPerSecForPreset(): Float = when (scratchFeelPreset) {
+        ScratchFeelPreset.SMOOTH -> 56_000f
+        ScratchFeelPreset.CLASSIC -> 96_000f
+        ScratchFeelPreset.CUT -> 140_000f
+    }
+
     private fun scratchRateSlewPerFrameForPreset(): Float = when (scratchFeelPreset) {
         ScratchFeelPreset.SMOOTH -> 0.08f
         ScratchFeelPreset.CLASSIC -> 0.14f
@@ -393,10 +413,18 @@ class AndroidAudioEngineController(
         ScratchFeelPreset.CUT -> 0.28f
     }
 
-    private fun scratchLagDecayPerBurstForPreset(): Float = when (scratchFeelPreset) {
-        ScratchFeelPreset.SMOOTH -> 0.92f
-        ScratchFeelPreset.CLASSIC -> 0.88f
-        ScratchFeelPreset.CUT -> 0.82f
+    private fun scratchVolumeFromXNorm(xNorm: Float): Float {
+        val x = xNorm.coerceIn(0f, 1f)
+        return when (scratchVolumeCurve) {
+            ScratchVolumeCurve.LINEAR -> x
+            ScratchVolumeCurve.WIDE_CUT_LEFT -> {
+                val dead = 0.55f
+                if (x <= dead) 0f
+                else ((x - dead) / (1f - dead)).coerceIn(0f, 1f)
+            }
+            ScratchVolumeCurve.SOFT_TAPER -> x.toDouble().pow(2.75).toFloat()
+            ScratchVolumeCurve.EARLY_FULL -> x.toDouble().pow(0.52).toFloat()
+        }
     }
 
     fun startMonitoring() {
@@ -427,8 +455,6 @@ class AndroidAudioEngineController(
         scratchRing = ScratchRingBuffer(ScratchRingBuffer.DEFAULT_CAP_FRAMES).also { it.reset() }
         fxReverb = HallReverbStereo(config.sampleRateHz).also { it.reset() }
         fxTapeWow = TapeWowFlutterStereo(config.sampleRateHz).also { it.reset() }
-        scratchLagFrames = 0f
-        scratchRateCurrent = 0f
         scratchRateTarget = 0f
         scratchVolumeCurrent = 1f
         scratchVolumeTarget = 1f
@@ -543,31 +569,36 @@ class AndroidAudioEngineController(
 
             if (outSamples > 0) {
                 fxBusScratch.fill(0f, fromIndex = 0, toIndex = outSamples)
+                loopPlayer.configureVinylScratch(
+                    active = scratchTouchActive,
+                    rateTarget = scratchRateTarget,
+                    rateRange = scratchRateRangeForPreset(),
+                    slewPerFrame = scratchRateSlewPerFrameForPreset(),
+                    sampleRateHz = config.sampleRateHz,
+                    maxSamplesPerSec = vinylMaxSamplesPerSecForPreset()
+                )
                 loopPlayer.mixInto(fxBusScratch, outChannels, frameCount)
                 loopPlayer.mixShotInto(fxBusScratch, outChannels, frameCount)
+                applyScratchDeckToFxBus(frameCount, outChannels)
                 if (samplePlayingBpm) {
                     autoBpmSampleEstimator.ingestInterleavedInput(fxBusScratch, outChannels, frameCount)
                 }
                 when (samplerFxRoute) {
                     SamplerFxRouteIntent.THROUGH_EFFECTS_PATH -> {
-                        // Sampler → master pitch (before delay/flanger wet/dry) → scratch/delay/flanger → filter.
-                        pitchInterleavedInPlace(
-                            bus = fxBusScratch,
-                            frameCount = frameCount,
-                            outChannels = outChannels,
-                            ratio = mainPitchRatio,
-                            shifter = mainPitchShifterFxBus
-                        )
-
-                        if (fxOrderMode.scratchBeforeDelayFlanger) {
-                            applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
-                            applyDelayToFxBus(frameCount, config.sampleRateHz)
-                            applyFlangerToFxBus(frameCount, config.sampleRateHz)
-                        } else {
-                            applyDelayToFxBus(frameCount, config.sampleRateHz)
-                            applyFlangerToFxBus(frameCount, config.sampleRateHz)
-                            applyScratchToFxBus(frameCount, outChannels, config.sampleRateHz)
+                        // Sampler → deck level → master pitch → delay/flanger → filter…
+                        // Motor-off scratch holds a near-static block; phase vocoder (ratio ≠ 1) kills it → bypass while touching.
+                        if (!scratchTouchActive) {
+                            pitchInterleavedInPlace(
+                                bus = fxBusScratch,
+                                frameCount = frameCount,
+                                outChannels = outChannels,
+                                ratio = mainPitchRatio,
+                                shifter = mainPitchShifterFxBus
+                            )
                         }
+
+                        applyDelayToFxBus(frameCount, config.sampleRateHz)
+                        applyFlangerToFxBus(frameCount, config.sampleRateHz)
 
                         applyFilterToInterleaved(fxBusScratch, frameCount, outChannels, config.sampleRateHz)
                         if (fxOrderMode.tapeWowFlutterBeforeReverb) {
@@ -652,8 +683,6 @@ class AndroidAudioEngineController(
         fxTapeWow = null
         scratchRing?.reset()
         scratchRing = null
-        scratchLagFrames = 0f
-        scratchRateCurrent = 0f
         scratchRateTarget = 0f
         scratchVolumeCurrent = 1f
         scratchVolumeTarget = 1f
@@ -961,14 +990,13 @@ class AndroidAudioEngineController(
     fun eqHighDb(): Float = eqHighDb
 
     /**
-     * E4-S5: finger started/ended on scratch surface. When active, FX-bus samples after delay are read
-     * from the rolling buffer at lag/volume controlled by [setScratchTouchAxes].
+     * E4-S5: finger on scratch pad — vinyl model (loop phase / meter follow platter motion via [setScratchTouchAxes]).
      */
     fun setScratchTouchActive(active: Boolean) {
         scratchTouchActive = active
         if (active) {
-            scratchRateCurrent = 0f
             scratchRateTarget = 0f
+            // Volume comes from the next [setScratchTouchAxes] (finger X); do not force full level here.
         } else {
             scratchRateTarget = 0f
             scratchVolumeTarget = 1f
@@ -977,16 +1005,21 @@ class AndroidAudioEngineController(
 
     /**
      * Scratch pad axes:
-     * - xNorm: horizontal volume control (0 left/quiet .. 1 right/loud)
-     * - dyNorm: vertical motion drives signed platter speed (vinyl-like scrub)
+     * - xNorm: deck level **0 = left/quiet … 1 = right/full** (applies to sampler scratch bus only).
+     * - dyNorm: normalized vertical motion / velocity → platter speed; **down** (+Y / +vy) → backward in the loop.
      */
     fun setScratchTouchAxes(xNorm: Float, dyNorm: Float) {
-        if (scratchRing == null) return
         val rateRange = scratchRateRangeForPreset()
         val motion = dyNorm.coerceIn(-1f, 1f)
         scratchRateTarget = (-motion * rateRange).coerceIn(-220f, 220f)
-        scratchVolumeTarget = xNorm.coerceIn(0f, 1f)
+        scratchVolumeTarget = scratchVolumeFromXNorm(xNorm)
     }
+
+    fun setScratchVolumeCurve(curve: ScratchVolumeCurve) {
+        scratchVolumeCurve = curve
+    }
+
+    fun scratchVolumeCurve(): ScratchVolumeCurve = scratchVolumeCurve
 
     fun setScratchFeelPreset(preset: ScratchFeelPreset) {
         scratchFeelPreset = preset
@@ -1142,30 +1175,22 @@ class AndroidAudioEngineController(
         }
     }
 
-    private fun applyScratchToFxBus(frameCount: Int, outChannels: Int, sampleRateHz: Int) {
+    /**
+     * Feed scratch history ring (if present) + deck gain. Always applies gain even if ring is null or mono.
+     */
+    private fun applyScratchDeckToFxBus(frameCount: Int, outChannels: Int) {
+        if (outChannels <= 0) return
+        val volSlew = scratchVolumeSlewPerFrameForPreset()
         val ring = scratchRing
-        if (ring != null && outChannels >= 2) {
-            val maxLag = minOf(ring.maxLagFrames(), sampleRateHz * SCRATCH_MAX_LAG_SECONDS)
-            val rateSlew = scratchRateSlewPerFrameForPreset()
-            val volSlew = scratchVolumeSlewPerFrameForPreset()
-            for (f in 0 until frameCount) {
-                val base = f * outChannels
-                val lIn = fxBusScratch[base]
-                val rIn = fxBusScratch[base + 1]
-                ring.writeStereoFrame(lIn, rIn)
-                if (scratchTouchActive) {
-                    scratchRateCurrent += (scratchRateTarget - scratchRateCurrent) * rateSlew
-                    val lagDelta = -scratchRateCurrent
-                    scratchLagFrames = (scratchLagFrames + lagDelta).coerceIn(0f, maxLag)
-                    scratchVolumeCurrent += (scratchVolumeTarget - scratchVolumeCurrent) * volSlew
-                    val (sl, sr) = ring.readStereoAtLagFrames(scratchLagFrames)
-                    fxBusScratch[base] = sl * scratchVolumeCurrent
-                    fxBusScratch[base + 1] = sr * scratchVolumeCurrent
-                }
+        for (f in 0 until frameCount) {
+            val base = f * outChannels
+            if (ring != null && outChannels >= 2) {
+                ring.writeStereoFrame(fxBusScratch[base], fxBusScratch[base + 1])
             }
-            if (!scratchTouchActive && scratchLagFrames > 1e-4f) {
-                val decay = scratchLagDecayPerBurstForPreset()
-                scratchLagFrames *= decay
+            scratchVolumeCurrent += (scratchVolumeTarget - scratchVolumeCurrent) * volSlew
+            val g = scratchVolumeCurrent
+            for (oc in 0 until outChannels) {
+                fxBusScratch[base + oc] *= g
             }
         }
     }
@@ -1427,7 +1452,9 @@ class AndroidAudioEngineController(
             isPlaybackLooping = loopPlayer.isLooping(),
             isShotActive = loopPlayer.isShotActive(),
             loopPlayheadFrame = loopPlayer.publishedLoopPlayheadFrame,
+            loopPlayheadFraction = loopPlayer.publishedLoopPlayheadFraction,
             shotPlayheadFrame = loopPlayer.publishedShotPlayheadFrame,
+            shotPlayheadFraction = loopPlayer.publishedShotPlayheadFraction,
             samplerFxRoute = samplerFxRoute,
             isReversePlayback = loopPlayer.isReversePlayback(),
             mainPitchPercent = mainPitchPercent,
