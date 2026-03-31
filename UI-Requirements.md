@@ -30,7 +30,7 @@ Define this mapping explicitly in docs and implement 1:1 in view IDs/names:
 
 
 
-Top strip: IN LEVEL, OVERLOAD, BPM readout, MASTER PITCH knob/value, DRY/WET knob, beat-division indicator LEDs. **Beat indicator:** small **red pulse dot** drawn in the **center** of the filter **Cutoff** rotary knob (does not use a separate overlay view, so the knob stays one touch target).
+Top strip: IN LEVEL, OVERLOAD, BPM readout, MASTER PITCH knob/value, DRY/WET knob, beat-division indicator LEDs. **Beat indicator:** small **red pulse dot** drawn in the **center** of the filter **Cutoff** rotary knob (does not use a separate overlay view, so the knob stays one touch target). **Master pitch (audio):** pitch-only (no tempo change); when engaged it runs a phase-vocoder on the monitor and (with **FX ROUTE** on) the sampler bus, with **input ring buffering** so short audio bursts do not break the STFT — see **E3** / `E3-S1` in the living product backlog.
 
 
 

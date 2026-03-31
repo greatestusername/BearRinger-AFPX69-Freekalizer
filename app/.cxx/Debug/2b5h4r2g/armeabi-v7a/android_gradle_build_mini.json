@@ -1,0 +1,33 @@
+{
+  "buildFiles": [
+    "/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/macbearpig/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/macbearpig/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "freekalizer_pitch::@6890427a1f51a3e7e1df": {
+      "artifactName": "freekalizer_pitch",
+      "abi": "armeabi-v7a",
+      "output": "/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/build/intermediates/cxx/Debug/2b5h4r2g/obj/armeabi-v7a/libfreekalizer_pitch.so",
+      "runtimeFiles": []
+    },
+    "soundtouch::@6890427a1f51a3e7e1df": {
+      "artifactName": "soundtouch",
+      "abi": "armeabi-v7a",
+      "output": "/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a/libsoundtouch.a",
+      "runtimeFiles": []
+    }
+  }
+}

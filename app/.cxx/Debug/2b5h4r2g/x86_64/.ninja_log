@@ -1,0 +1,17 @@
+# ninja log v5
+14	818	1774822756363416787	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/PeakFinder.cpp.o	2b87c8657b3226e3
+2	2258	1774822757796673986	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/cpu_detect_x86.cpp.o	d531e3a5357ba192
+0	2538	1774822757961355891	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/AAFilter.cpp.o	3877d256c0205ad6
+5	2566	1774822758104923244	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/InterpolateCubic.cpp.o	4be27feb1ddc1b64
+2	2578	1774822758106795549	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp.o	75ffed0e62e5ee16
+18	2658	1774822758187138666	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/RateTransposer.cpp.o	f94beac4ce8941c5
+11	2720	1774822758137836607	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/InterpolateShannon.cpp.o	3f46490600894b94
+3	2875	1774822758408999343	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/FIRFilter.cpp.o	9c0b5c7fdbaedece
+7	2903	1774822758420195412	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/InterpolateLinear.cpp.o	5a5905e56403b733
+1	2945	1774822758429494990	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/BPMDetect.cpp.o	d50c61bf6d1d8fb5
+821	3445	1774822758983505432	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/sse_optimized.cpp.o	bcb5306812fbaf8f
+2263	4100	1774822759637312652	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/SoundTouch.cpp.o	a335f6d800f0b1e5
+2567	4153	1774822759693834014	CMakeFiles/freekalizer_pitch.dir/freekalizer_soundtouch_jni.cpp.o	38b8e841c6292814
+2538	4285	1774822759826970370	CMakeFiles/soundtouch.dir/third_party/soundtouch/source/SoundTouch/TDStretch.cpp.o	70c0df4f4504f488
+4286	4473	1774822760025960000	libsoundtouch.a	ca7cedc9f8e19708
+4473	4657	1774822760203838073	/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/build/intermediates/cxx/Debug/2b5h4r2g/obj/x86_64/libfreekalizer_pitch.so	176f0e1248b29550

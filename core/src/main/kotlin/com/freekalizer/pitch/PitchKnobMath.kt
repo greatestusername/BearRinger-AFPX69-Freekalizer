@@ -23,8 +23,8 @@ object PitchKnobMath {
     }
 
     /**
-     * **Main pitch** (pitch-only path): frequency-domain shift ratio (same numeric endpoints as sample pitch).
-     * 1.0 = bypass; 0.5 / 1.5 = one octave down/up at the extremes of this knob range.
+     * **Main pitch** (varispeed path): playback-speed multiplier — **pitch and tempo** move together
+     * (same mapping as [toPlaybackSpeedMultiplier]). 1.0 = bypass; 0.5 / 1.5 at knob extremes.
      */
     fun toPitchShiftRatio(percent: Float): Float = toPlaybackSpeedMultiplier(percent)
 }

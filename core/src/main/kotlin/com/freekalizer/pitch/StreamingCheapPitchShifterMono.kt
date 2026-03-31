@@ -8,14 +8,18 @@ import kotlin.math.hypot
 import kotlin.math.sin
 
 /**
- * Streaming **phase-vocoder** pitch shifter: Hann STFT, per-bin phase propagation (instantaneous
- * frequency estimate), overlap-add synthesis. Better behaved than raw spectrum bin-stretching on
- * drum/loop material. **No allocations** in [processReplace].
+ * Streaming **phase-vocoder** pitch shifter: Hann STFT, per-bin phase propagation, overlap-add.
+ * **No allocations** in [processReplace].
  *
- * Default frame/hop are 1024/256; the tablet uses 4096/256 for master pitch (high overlap).
+ * Input is fed through an internal **ring buffer** so analysis windows always contain **real**
+ * consecutive samples. (Padding short callbacks with zeros up to [fftSize] — inevitable with naive
+ * STFT — destroys the PV and sounds like noise on typical Android burst sizes ≈ 96–256 frames.)
+ *
+ * Default **2048 / 256** balances quality vs priming latency (~43 ms @ 48 kHz before first shifted
+ * output appears).
  */
 class StreamingCheapPitchShifterMono(
-    private val fftSize: Int = 1024,
+    private val fftSize: Int = 2048,
     private val hop: Int = 256
 ) {
     init {
@@ -27,25 +31,35 @@ class StreamingCheapPitchShifterMono(
     private val twopi = (2.0 * PI).toFloat()
 
     private val win = FloatArray(fftSize)
+    /** Sliding analysis window (always copied from [inputRing] when a frame is formed). */
     private val inFifo = FloatArray(fftSize)
-    private var inFifoCount = 0
 
     private val fftTimeRe = FloatArray(fftSize)
     private val fftTimeIm = FloatArray(fftSize)
 
     private val lastPhaseIn = FloatArray(nh + 1)
     private val sumPhaseOut = FloatArray(nh + 1)
-    /** Eased magnitude per bin — tames vertical “zipper” / metallic chatter between frames. */
     private val magSmoothed = FloatArray(nh + 1)
 
     private var pvFrameIndex: Int = 0
 
+    /** Frames fully synthesized (unity or shifted); used to avoid injecting dry mid-stream when the ring dips below [fftSize]. */
+    private var synthFramesCompleted: Int = 0
+
     private val outAccum = FloatArray(fftSize)
 
-    private val pending = FloatArray(hop * 128)
+    private val pending = FloatArray(hop * 256)
     private var pendingHead = 0
     private var pendingTail = 0
     private var olaScale = 1f
+
+    /** ~1.3 s @ 48 kHz — headroom so bursts never force drops. */
+    private val inputRing = FloatArray(64_000)
+    private var ringHead = 0
+    private var ringSize = 0
+
+    /** Fills output when the PV has not primed yet (avoids zeros / zipper). */
+    private var holdOutput = 0f
 
     init {
         val denom = (fftSize - 1).coerceAtLeast(1)
@@ -70,18 +84,50 @@ class StreamingCheapPitchShifterMono(
     }
 
     fun reset() {
-        inFifo.fill(0f)
-        inFifoCount = 0
+        ringHead = 0
+        ringSize = 0
         fftTimeRe.fill(0f)
         fftTimeIm.fill(0f)
         lastPhaseIn.fill(0f)
         sumPhaseOut.fill(0f)
         magSmoothed.fill(0f)
         pvFrameIndex = 0
+        synthFramesCompleted = 0
         outAccum.fill(0f)
         pending.fill(0f)
         pendingHead = 0
         pendingTail = 0
+        holdOutput = 0f
+    }
+
+    private fun ringEnqueue(samples: FloatArray, offset: Int, length: Int) {
+        val cap = inputRing.size
+        for (n in 0 until length) {
+            if (ringSize >= cap) {
+                ringHead = (ringHead + 1) % cap
+                ringSize--
+            }
+            val t = (ringHead + ringSize) % cap
+            inputRing[t] = samples[offset + n]
+            ringSize++
+        }
+    }
+
+    private fun ringCopyToFifo(): Boolean {
+        if (ringSize < fftSize) return false
+        var idx = ringHead
+        val cap = inputRing.size
+        for (i in 0 until fftSize) {
+            inFifo[i] = inputRing[idx]
+            idx = (idx + 1) % cap
+        }
+        return true
+    }
+
+    private fun ringAdvanceHop() {
+        val cap = inputRing.size
+        ringHead = (ringHead + hop) % cap
+        ringSize -= hop
     }
 
     fun processReplace(
@@ -93,55 +139,55 @@ class StreamingCheapPitchShifterMono(
         pitchRatio: Float
     ) {
         val ratio = pitchRatio.coerceIn(0.5f, 1.5f)
-        var inCursor = 0
-        var outCursor = 0
         val nf = fftSize.toFloat()
         val hopf = hop.toFloat()
+
+        ringEnqueue(input, inputOffset, frameCount)
+
+        var outCursor = 0
         while (outCursor < frameCount) {
             while (pendingHead != pendingTail && outCursor < frameCount) {
-                output[outputOffset + outCursor++] = pending[pendingHead]
+                val s = pending[pendingHead]
                 pendingHead = (pendingHead + 1) % pending.size
+                holdOutput = s
+                output[outputOffset + outCursor++] = s
             }
             if (outCursor >= frameCount) break
 
-            while (inFifoCount < fftSize && inCursor < frameCount) {
-                inFifo[inFifoCount++] = input[inputOffset + inCursor++]
-            }
-            while (inFifoCount < fftSize) {
-                inFifo[inFifoCount++] = 0f
-            }
+            if (ringSize >= fftSize) {
+                ringCopyToFifo()
+                synthesizeOneFrame(ratio, nf, hopf)
+                ringAdvanceHop()
 
-            synthesizeOneFrame(ratio, nf, hopf)
-
-            for (j in 0 until hop) {
-                val next = (pendingTail + 1) % pending.size
-                if (next == pendingHead) break
-                pending[pendingTail] = outAccum[j] * olaScale
-                pendingTail = next
-            }
-            for (j in 0 until fftSize - hop) {
-                outAccum[j] = outAccum[j + hop]
-            }
-            for (j in fftSize - hop until fftSize) {
-                outAccum[j] = 0f
-            }
-
-            for (j in 0 until fftSize - hop) {
-                inFifo[j] = inFifo[j + hop]
-            }
-            inFifoCount = fftSize - hop
-            while (inFifoCount < fftSize && inCursor < frameCount) {
-                inFifo[inFifoCount++] = input[inputOffset + inCursor++]
-            }
-            while (inFifoCount < fftSize) {
-                inFifo[inFifoCount++] = 0f
+                for (j in 0 until hop) {
+                    val next = (pendingTail + 1) % pending.size
+                    if (next == pendingHead) break
+                    pending[pendingTail] = outAccum[j] * olaScale
+                    pendingTail = next
+                }
+                for (j in 0 until fftSize - hop) {
+                    outAccum[j] = outAccum[j + hop]
+                }
+                for (j in fftSize - hop until fftSize) {
+                    outAccum[j] = 0f
+                }
+            } else {
+                // Ring not full: before first synth, follow dry (priming). After that, hold last sample — dry here
+                // would splice input against the PV stream and sound like noise when burst+hop leaves ringSize < fftSize.
+                if (synthFramesCompleted == 0) {
+                    val di = minOf(outCursor, frameCount - 1).coerceAtLeast(0)
+                    val dry = input[inputOffset + di]
+                    holdOutput = dry
+                    output[outputOffset + outCursor++] = dry
+                } else {
+                    output[outputOffset + outCursor++] = holdOutput
+                }
             }
         }
     }
 
     private companion object {
-        /** Higher = smoother spectrum, softer transients (more “analog,” less zipper). */
-        private const val STFT_MAG_SMOOTH: Float = 0.88f
+        private const val STFT_MAG_SMOOTH: Float = 0.72f
     }
 
     private fun principalArg(phase: Float): Float {
@@ -189,6 +235,7 @@ class StreamingCheapPitchShifterMono(
             val dcMag = hypot(fftTimeRe[0], fftTimeIm[0])
             fftTimeRe[0] = dcMag
             fftTimeIm[0] = 0f
+            fftTimeRe[nh] = 0f
             fftTimeIm[nh] = 0f
 
             for (k in 1 until nh) {
@@ -202,5 +249,6 @@ class StreamingCheapPitchShifterMono(
         for (n in 0 until fftSize) {
             outAccum[n] += fftTimeRe[n] * win[n]
         }
+        synthFramesCompleted++
     }
 }

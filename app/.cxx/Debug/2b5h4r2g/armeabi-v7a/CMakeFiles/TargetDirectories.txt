@@ -1,0 +1,4 @@
+/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a/CMakeFiles/soundtouch.dir
+/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a/CMakeFiles/freekalizer_pitch.dir
+/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/macbearpig/repos/greatestusername/tweakalizer-tablet/app/.cxx/Debug/2b5h4r2g/armeabi-v7a/CMakeFiles/rebuild_cache.dir

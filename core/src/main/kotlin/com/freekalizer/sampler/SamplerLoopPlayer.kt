@@ -8,7 +8,7 @@ import kotlin.math.min
  * Continuous interleaved PCM loop playback; mixes into an existing output buffer (e.g. after dry monitoring).
  * Real-time safe: no allocations in [mixInto] / [mixShotInto].
  *
- * **Sample pitch** (-50%..+50%) is **pitch+tempo** via fractional read speed and linear interpolation.
+ * **Sample pitch** (-50%..+50%) is **pitch+tempo** (varispeed) via fractional read speed and linear interpolation.
  */
 class SamplerLoopPlayer {
     private var pcm: FloatArray = FloatArray(0)

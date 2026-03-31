@@ -27,7 +27,7 @@ import com.freekalizer.effects.TapeWowFlutterStereo
 import com.freekalizer.effects.StereoFlanger
 import com.freekalizer.effects.ThreeBandStereoEq
 import com.freekalizer.pitch.PitchKnobMath
-import com.freekalizer.pitch.StreamingCheapPitchShifterMono
+import com.freekalizer.pitch.StreamingStereoMasterPitchShifter
 import com.freekalizer.timing.AutoBpmEstimator
 import com.freekalizer.timing.AutoBpmReading
 import com.freekalizer.timing.InternalBpmTimingSource
@@ -83,9 +83,9 @@ class AndroidAudioEngineController(
 
     private val loopPlayer = SamplerLoopPlayer()
 
-    /** High overlap (4096/256) for smoother PV; master pitch is pitch-only (no tempo change). */
-    private val mainPitchShifterMonitor = StreamingCheapPitchShifterMono(fftSize = 4096, hop = 256)
-    private val mainPitchShifterFxBus = StreamingCheapPitchShifterMono(fftSize = 4096, hop = 256)
+    /** Master pitch = varispeed (pitch + tempo); monitor + FX bus. */
+    private val mainPitchShifterMonitor = StreamingStereoMasterPitchShifter()
+    private val mainPitchShifterFxBus = StreamingStereoMasterPitchShifter()
 
     /** E4-S6: output-path EQ (applied after dry + sampler/FX sum). */
     private val monitorEq = ThreeBandStereoEq()
@@ -136,9 +136,7 @@ class AndroidAudioEngineController(
     @Volatile
     private var filterParamsDirty: Boolean = true
 
-    private var monoPitchScratch: FloatArray = FloatArray(0)
-    private var monoPitchOutScratch: FloatArray = FloatArray(0)
-    /** Pre–master-pitch monitor (input × monitor gain) before PV into [output]. */
+    /** Pre–master-pitch monitor (input × monitor gain) before varispeed into [output]. */
     private var monitorBaseScratch: FloatArray = FloatArray(0)
 
     @Volatile
@@ -162,6 +160,18 @@ class AndroidAudioEngineController(
 
     /** Slow LFO phase for tiny pitch wander (vinyl-ish) when shifted away from unity. */
     private var mainPitchWowPhase: Double = 0.0
+
+    /**
+     * True = master pitch stream treated as bypass (dry copy / no varispeed on bus). Uses hysteresis so
+     * tiny slew/wow around unity does not toggle processing every buffer.
+     */
+    private var mainPitchHysteresisBypass: Boolean = true
+
+    /** Previous callback’s bypass state — detect resume after idle to reset varispeed state. */
+    private var mainPitchStreamBypassedPrev: Boolean = true
+
+    /** Scratch on FX route skips master varispeed; track edge so shifter state is not stale on release. */
+    private var lastFxPitchSkippedByScratch: Boolean = false
 
     /**
      * Scratch bus for sampler audio when [samplerFxRoute] is [SamplerFxRouteIntent.THROUGH_EFFECTS_PATH].
@@ -315,14 +325,20 @@ class AndroidAudioEngineController(
         /** Stability margin under Nyquist for cutoff calculations at the top end. */
         private const val FILTER_MAX_NYQUIST_RATIO: Float = 0.82f
 
-        /** Master pitch ratio slew ~63% settle time (seconds). */
-        private const val MAIN_PITCH_SLEW_TAU_SEC: Float = 0.034f
+        /** Master pitch ratio slew ~63% settle time (seconds); larger = tape-like glide to new pitch. */
+        private const val MAIN_PITCH_SLEW_TAU_SEC: Float = 0.14f
 
         /** Very slow wow when master pitch is active (Hz). */
         private const val MAIN_PITCH_WOW_HZ: Double = 0.38
 
         /** Subtle pitch wander vs unity (scaled by how much shift is applied). */
         private const val MAIN_PITCH_WOW_DEPTH: Float = 0.0032f
+
+        /** Hysteresis: stay in true bypass while |ratio−1| is below this (avoids flutter at unity). */
+        private const val MAIN_PITCH_BYPASS_ERR: Float = 1.2e-3f
+
+        /** Hysteresis: leave bypass only when |ratio−1| exceeds this (must be > [MAIN_PITCH_BYPASS_ERR]). */
+        private const val MAIN_PITCH_ACTIVATE_ERR: Float = 2.8e-3f
     }
 
     private fun mainPitchMaxAbsPercent(): Float = when (mainPitchRangeMode) {
@@ -346,6 +362,20 @@ class AndroidAudioEngineController(
         while (mainPitchWowPhase < 0.0) mainPitchWowPhase += 2.0 * PI
         val wow = 1f + (MAIN_PITCH_WOW_DEPTH * wowAmt * sin(mainPitchWowPhase)).toFloat()
         return (mainPitchRatioSlewed * wow).coerceIn(0.5f, 1.5f)
+    }
+
+    /**
+     * Updates [mainPitchHysteresisBypass] and returns whether the master-pitch processors should
+     * fully bypass (dry) this buffer.
+     */
+    private fun stepMainPitchStreamBypass(ratio: Float): Boolean {
+        val err = abs(ratio - 1f)
+        if (mainPitchHysteresisBypass) {
+            if (err > MAIN_PITCH_ACTIVATE_ERR) mainPitchHysteresisBypass = false
+        } else {
+            if (err < MAIN_PITCH_BYPASS_ERR) mainPitchHysteresisBypass = true
+        }
+        return mainPitchHysteresisBypass
     }
 
     enum class ScratchFeelPreset {
@@ -442,8 +472,6 @@ class AndroidAudioEngineController(
         currentConfig = config
         fxBusScratch = FloatArray(config.framesPerBurst * config.outputChannels)
         monitorBaseScratch = FloatArray(config.framesPerBurst * config.outputChannels)
-        monoPitchScratch = FloatArray(config.framesPerBurst)
-        monoPitchOutScratch = FloatArray(config.framesPerBurst)
         fxDelay = InterleavedFeedbackDelay(
             channels = config.outputChannels,
             maxDelayFrames = config.sampleRateHz * DELAY_MAX_SECONDS
@@ -465,6 +493,9 @@ class AndroidAudioEngineController(
         mainPitchShifterFxBus.reset()
         mainPitchRatioSlewed = PitchKnobMath.toPitchShiftRatio(mainPitchPercent)
         mainPitchWowPhase = 0.0
+        mainPitchHysteresisBypass = abs(mainPitchRatioSlewed - 1f) < MAIN_PITCH_BYPASS_ERR
+        mainPitchStreamBypassedPrev = mainPitchHysteresisBypass
+        lastFxPitchSkippedByScratch = false
         filterL.reset()
         filterR.reset()
         filterEnv = 0f
@@ -533,6 +564,21 @@ class AndroidAudioEngineController(
             val outChannels = config.outputChannels
             val outSamples = frameCount * outChannels
             val mainPitchRatio = effectiveMasterPitchRatio(frameCount, config.sampleRateHz)
+            val bypassPrev = mainPitchStreamBypassedPrev
+            val mainPitchStreamBypass = stepMainPitchStreamBypass(mainPitchRatio)
+            if (!mainPitchStreamBypass && bypassPrev) {
+                mainPitchShifterMonitor.reset()
+                mainPitchShifterFxBus.reset()
+            }
+            mainPitchStreamBypassedPrev = mainPitchStreamBypass
+            if (samplerFxRoute == SamplerFxRouteIntent.THROUGH_EFFECTS_PATH) {
+                if (lastFxPitchSkippedByScratch && !scratchTouchActive) {
+                    mainPitchShifterFxBus.reset()
+                }
+                lastFxPitchSkippedByScratch = scratchTouchActive
+            } else {
+                lastFxPitchSkippedByScratch = false
+            }
 
             if (inChannels <= 0) {
                 for (i in 0 until outSamples) output[i] = 0f
@@ -563,6 +609,7 @@ class AndroidAudioEngineController(
                     frameCount = frameCount,
                     outChannels = outChannels,
                     ratio = mainPitchRatio,
+                    streamBypass = mainPitchStreamBypass,
                     shifter = mainPitchShifterMonitor
                 )
             }
@@ -586,13 +633,14 @@ class AndroidAudioEngineController(
                 when (samplerFxRoute) {
                     SamplerFxRouteIntent.THROUGH_EFFECTS_PATH -> {
                         // Sampler → deck level → master pitch → delay/flanger → filter…
-                        // Motor-off scratch holds a near-static block; phase vocoder (ratio ≠ 1) kills it → bypass while touching.
+                        // Motor-off scratch holds a near-static block; varispeed (ratio ≠ 1) smears it → bypass while touching.
                         if (!scratchTouchActive) {
                             pitchInterleavedInPlace(
                                 bus = fxBusScratch,
                                 frameCount = frameCount,
                                 outChannels = outChannels,
                                 ratio = mainPitchRatio,
+                                streamBypass = mainPitchStreamBypass,
                                 shifter = mainPitchShifterFxBus
                             )
                         }
@@ -1098,10 +1146,8 @@ class AndroidAudioEngineController(
         }
     }
 
-    private fun mainPitchBypass(ratio: Float): Boolean = abs(ratio - 1f) < 1e-3f
-
     /**
-     * [src] interleaved → optional PV by mono sum → [dst]. Used for input/monitor path after gain.
+     * [src] interleaved → optional stereo pitch → [dst]. Used for input/monitor path after gain.
      */
     private fun copyOrMasterPitchInterleaved(
         src: FloatArray,
@@ -1109,70 +1155,28 @@ class AndroidAudioEngineController(
         frameCount: Int,
         outChannels: Int,
         ratio: Float,
-        shifter: StreamingCheapPitchShifterMono
+        streamBypass: Boolean,
+        shifter: StreamingStereoMasterPitchShifter
     ) {
         val outSamples = frameCount * outChannels
-        if (mainPitchBypass(ratio)) {
+        if (streamBypass) {
             for (i in 0 until outSamples) dst[i] = src[i]
             return
         }
-        if (outChannels >= 2) {
-            for (f in 0 until frameCount) {
-                val l = src[f * outChannels]
-                val r = src[f * outChannels + 1]
-                monoPitchScratch[f] = 0.5f * (l + r)
-            }
-        } else {
-            for (f in 0 until frameCount) {
-                monoPitchScratch[f] = src[f * outChannels]
-            }
-        }
-        shifter.processReplace(monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio)
-        if (outChannels >= 2) {
-            for (f in 0 until frameCount) {
-                val v = monoPitchOutScratch[f]
-                dst[f * outChannels] = v
-                dst[f * outChannels + 1] = v
-            }
-        } else {
-            for (f in 0 until frameCount) {
-                dst[f] = monoPitchOutScratch[f]
-            }
-        }
+        shifter.processInterleaved(src, dst, frameCount, outChannels, ratio)
     }
 
-    /** In-place interleaved PV (mono sum → expand) for the FX bus. */
+    /** In-place interleaved pitch for the FX bus. */
     private fun pitchInterleavedInPlace(
         bus: FloatArray,
         frameCount: Int,
         outChannels: Int,
         ratio: Float,
-        shifter: StreamingCheapPitchShifterMono
+        streamBypass: Boolean,
+        shifter: StreamingStereoMasterPitchShifter
     ) {
-        if (mainPitchBypass(ratio)) return
-        if (outChannels >= 2) {
-            for (f in 0 until frameCount) {
-                val l = bus[f * outChannels]
-                val r = bus[f * outChannels + 1]
-                monoPitchScratch[f] = 0.5f * (l + r)
-            }
-        } else {
-            for (f in 0 until frameCount) {
-                monoPitchScratch[f] = bus[f * outChannels]
-            }
-        }
-        shifter.processReplace(monoPitchScratch, 0, monoPitchOutScratch, 0, frameCount, ratio)
-        if (outChannels >= 2) {
-            for (f in 0 until frameCount) {
-                val v = monoPitchOutScratch[f]
-                bus[f * outChannels] = v
-                bus[f * outChannels + 1] = v
-            }
-        } else {
-            for (f in 0 until frameCount) {
-                bus[f] = monoPitchOutScratch[f]
-            }
-        }
+        if (streamBypass) return
+        shifter.processInterleaved(bus, bus, frameCount, outChannels, ratio)
     }
 
     /**
@@ -1386,6 +1390,7 @@ class AndroidAudioEngineController(
         this.lastQuantizedBars = lastQuantizedBars
         bpmAtLastCapture = bpmAtCapture
         loopPlayer.load(buffer)
+        loopPlayer.setSamplePitchPercent(samplePitchPercent)
         applyInternalBpmAfterSampleLoad(buffer, lastQuantizedBars, fallbackBpm = bpmAtCapture)
     }
 
